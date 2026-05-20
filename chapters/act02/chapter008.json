@@ -1,0 +1,59 @@
+{
+  "chapter_id": "act02_ch008",
+  "title": "The Crimson Lieutenant",
+  "act": 2,
+  "chapter": 8,
+  "type": "boss",
+  "playtime_estimate_minutes": 5,
+  "objective": "Defeat the Crimson Fang lieutenant and his golem",
+  "background_color": [0.20, 0.04, 0.04],
+  "theme": "dark_fortress",
+  "enemies": [
+    {
+      "type": "assassin",
+      "count": 2,
+      "positions": [
+        {"x": 150, "y": 100},
+        {"x": 500, "y": 150}
+      ],
+      "stats": {"health": 40, "speed": 130, "damage": 16}
+    },
+    {
+      "type": "golem",
+      "count": 1,
+      "positions": [{"x": 400, "y": 200}],
+      "stats": {"health": 180, "speed": 40, "damage": 30, "armor": 10}
+    },
+    {
+      "type": "bandit_lieutenant",
+      "count": 1,
+      "positions": [{"x": 320, "y": 80}],
+      "stats": {"health": 100, "speed": 100, "damage": 22, "shield_max": 3}
+    }
+  ],
+  "dialogue": [
+    {
+      "speaker": "LIEUTENANT",
+      "text": "So the Sword of Ruin found a new pup. Let's see if you can even scratch my golem.",
+      "trigger": "start"
+    },
+    {
+      "speaker": "JIN",
+      "text": "A golem? That's new. Focus the lieutenant — the golem will fall with him!",
+      "trigger": "mid_combat"
+    },
+    {
+      "speaker": "JIN",
+      "text": "The Fang's Lieutenant falls. This blade grows sharper with every battle.",
+      "trigger": "objective_complete"
+    }
+  ],
+  "rewards": {
+    "xp": 200,
+    "unlock_chapter": "act02_ch009",
+    "gold": 60,
+    "unlock_weapon": "crimson_edge"
+  },
+  "next_chapter": "act02_ch009",
+  "is_unlocked": false
+}

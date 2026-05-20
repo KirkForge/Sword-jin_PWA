@@ -1,0 +1,52 @@
+{
+  "chapter_id": "act02_ch005",
+  "title": "The Merchant's Trail",
+  "act": 2,
+  "chapter": 5,
+  "type": "combat",
+  "playtime_estimate_minutes": 3,
+  "objective": "Protect the merchant caravan from bandit ambush",
+  "background_color": [0.12, 0.22, 0.10],
+  "theme": "forest",
+  "enemies": [
+    {
+      "type": "bandit",
+      "count": 4,
+      "positions": [
+        {"x": 150, "y": 120},
+        {"x": 350, "y": 180},
+        {"x": 500, "y": 100},
+        {"x": 250, "y": 260}
+      ],
+      "stats": {"health": 50, "speed": 90, "damage": 12}
+    }
+  ],
+  "allies": [
+    {
+      "type": "merchant_ally",
+      "count": 1,
+      "positions": [{"x": 320, "y": 200}],
+      "stats": {"health": 60, "speed": 70, "heal_amount": 8}
+    }
+  ],
+  "dialogue": [
+    {
+      "speaker": "MERCHANT",
+      "text": "Bandits on the road! Jin, keep them off the wagon!",
+      "trigger": "start"
+    },
+    {
+      "speaker": "JIN",
+      "text": "More brigands. They're getting organized — someone's paying them.",
+      "trigger": "objective_complete"
+    }
+  ],
+  "rewards": {
+    "xp": 80,
+    "unlock_chapter": "act02_ch006",
+    "gold": 15,
+    "unlock_skill": "whirlwind_slash"
+  },
+  "next_chapter": "act02_ch006",
+  "is_unlocked": false
+}

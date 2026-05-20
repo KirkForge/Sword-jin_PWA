@@ -1,0 +1,69 @@
+{
+  "chapter_id": "act02_ch010",
+  "title": "The Capital Gates",
+  "act": 2,
+  "chapter": 10,
+  "type": "boss",
+  "playtime_estimate_minutes": 6,
+  "objective": "Defeat the Gate Warden to enter the capital",
+  "background_color": [0.14, 0.10, 0.06],
+  "theme": "fortress",
+  "enemies": [
+    {
+      "type": "bandit",
+      "count": 3,
+      "positions": [
+        {"x": 200, "y": 100},
+        {"x": 450, "y": 80},
+        {"x": 350, "y": 250}
+      ],
+      "stats": {"health": 55, "speed": 90, "damage": 15}
+    },
+    {
+      "type": "golem",
+      "count": 2,
+      "positions": [
+        {"x": 250, "y": 180},
+        {"x": 500, "y": 200}
+      ],
+      "stats": {"health": 160, "speed": 45, "damage": 28, "armor": 8}
+    },
+    {
+      "type": "gate_warden",
+      "count": 1,
+      "positions": [{"x": 380, "y": 120}],
+      "stats": {"health": 200, "speed": 70, "damage": 25, "shield_max": 5, "phase2_threshold": 0.5}
+    }
+  ],
+  "dialogue": [
+    {
+      "speaker": "WARDEN",
+      "text": "Halt! None pass the capital gates without the Crimson Fang's seal.",
+      "trigger": "start"
+    },
+    {
+      "speaker": "JIN",
+      "text": "I don't need a seal. I have a sword.",
+      "trigger": "start"
+    },
+    {
+      "speaker": "WARDEN",
+      "text": "Enough! You force me to fight seriously!",
+      "trigger": "mid_combat"
+    },
+    {
+      "speaker": "JIN",
+      "text": "The gate is open. Act 2 ends — but the Crimson Fang still controls the city.",
+      "trigger": "objective_complete"
+    }
+  ],
+  "rewards": {
+    "xp": 300,
+    "unlock_chapter": "act03_ch011",
+    "gold": 100,
+    "unlock_weapon": "wardens_halberd",
+    "act2_complete": true
+  },
+  "next_chapter": "act03_ch011",
+  "is_unlocked": false
+}

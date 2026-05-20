@@ -1,0 +1,80 @@
+{
+  "chapter_id": "act01_ch002",
+  "title": "The Merchant's Plea",
+  "act": 1,
+  "chapter": 2,
+  "type": "combat",
+  "playtime_estimate_minutes": 3,
+  "objective": "Defeat 3 skeletons to escort the merchant",
+  "background_color": [
+    0.12,
+    0.15,
+    0.1
+  ],
+  "enemies": [
+    {
+      "type": "skeleton",
+      "count": 2,
+      "positions": [
+        {
+          "x": 320,
+          "y": 100
+        },
+        {
+          "x": 500,
+          "y": 200
+        }
+      ],
+      "stats": {
+        "health": 45,
+        "speed": 85,
+        "damage": 12
+      }
+    },
+    {
+      "type": "skeleton_archer",
+      "count": 1,
+      "positions": [
+        {
+          "x": 480,
+          "y": 80
+        }
+      ],
+      "stats": {
+        "health": 25,
+        "speed": 70,
+        "damage": 7
+      }
+    }
+  ],
+  "allies": [
+    {
+      "type": "merchant",
+      "position": {
+        "x": 120,
+        "y": 250
+      },
+      "follow_distance": 80,
+      "dialogue": {
+        "start": "Please \u2014 my guard took an arrow to the shoulder.",
+        "mid_combat": "They're coming from the north! Watch your flank!",
+        "objective_complete": "I owe you my life. Take this \u2014 it's sharp."
+      }
+    }
+  ],
+  "dialogue": [
+    {
+      "speaker": "JIN",
+      "text": "Keep your coin. The dead don't need it. But stay behind me.",
+      "trigger": "start"
+    }
+  ],
+  "rewards": {
+    "xp": 60,
+    "unlock_weapon": "steel_dagger",
+    "unlock_chapter": "act01_ch003",
+    "gold": 15
+  },
+  "next_chapter": "act01_ch003",
+  "is_unlocked": false
+}

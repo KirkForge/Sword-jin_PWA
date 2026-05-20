@@ -1,0 +1,349 @@
+# Swordjin Godot Development Progress
+
+## Current Build Info
+- Engine: Godot 4.4.1-stable (GL Compatibility)
+- Target: Mobile PWA via HTML5 export
+- Resolution: 640x360 (scales to mobile)
+
+# v0.53 — Floating Health Bars
+
+### New Files
+- `scenes/ui/health_bar.tscn` + `scripts/health_bar.gd` — Reusable health bar UI
+  - Small bar (32×6px) that sits above characters
+  - Green → yellow → red color shift as HP drops
+  - Smooth width scaling based on current/max HP
+
+### Updated
+- `scenes/player.tscn` — added HealthBar instance
+- `scenes/skeleton.tscn` — added HealthBar instance
+- `scenes/skeleton_captain.tscn` — added HealthBar instance
+- `scenes/skeleton_archer.tscn` — added HealthBar instance
+- `scripts/player.gd` — calls `health_bar.update_health()` in `_ready()` and `_update_label()`
+- `scripts/skeleton.gd` — calls `health_bar.update_health()` in `_update_label()`
+- `scripts/skeleton_captain.gd` — calls `health_bar.update_health()` in `_update_label()`
+- `scripts/skeleton_archer.gd` — calls `health_bar.update_health()` in `_update_label()`
+
+### Visual Polish
+- Health bars appear above all combatants (player + 3 enemy types)
+- Color-coded: green (>60%), yellow (30-60%), red (<30%)
+- Enemy labels still show text HP + shield count (captain)
+
+### Zero Parse Errors ✅
+### Commit: TBD
+
+
+LAST_RUN=20260513_0410
+
+
+# v0.54 — Floating Damage Numbers
+
+### New Files
+- `scenes/ui/damage_number.tscn` + `scripts/damage_number.gd` — Floating damage/heal numbers
+  - Spawns on hit, floats up, fades out over 0.9s
+  - Random horizontal offset to prevent stacking
+  - Red = damage, Green = heal, Gold = blocked (shield)
+  - z_index=20 so it renders above units
+
+### Updated
+- `scripts/player.gd` — `show_damage_number()` on take_damage and merchant_heal
+- `scripts/skeleton.gd` — `show_damage_number()` on take_damage
+- `scripts/skeleton_captain.gd` — `show_damage_number()` on take_damage (skips if shield blocks)
+- `scripts/skeleton_archer.gd` — `show_damage_number()` on take_damage
+- Arrow projectile already calls `player.take_damage()`, numbers show automatically
+
+### Visual Polish
+- Damage numbers appear on all combatants: player, skeleton, captain, archer
+- Player shows green heal numbers when merchant heals
+- Shield block shows no damage number (gold flash = clear feedback)
+
+### Zero Parse Errors ✅ (manual review)
+### Commit: TBD
+
+LAST_RUN=20260513_0427
+
+---
+
+# v0.56 — Screen Shake on Heavy Hits + Camera2D
+
+### New Files
+- `scripts/camera_shake.gd` — Reusable Camera2D shake component
+  - Triggered on heavy hits (player or captain attacks)
+  - Trauma decay over time with optional frequency
+  - Configurable intensity and duration per source
+  - Singleton-like access via `get_tree().root.get_camera_2d()
+
+### Updated
+- `scenes/game.tscn` / chapter scenes — added Camera2D node with camera_shake.gd
+- `scripts/player.gd` — calls `camera.shake()` on heavy attack land
+- `scripts/skeleton_captain.gd` — calls `camera.shake()` on shield bash / charge impact
+- `scripts/skeleton_archer.gd` — light shake on arrow hit
+
+### Visual Polish
+- Impact feedback: screen shake on heavy hits makes combat feel weightier
+- Camera stays at 640×360, shake applied as offset (no resolution change)
+- Different trauma levels: player heavy = 0.6s @ 0.4, captain charge = 0.8s @ 0.5, arrow = 0.3s @ 0.2
+
+### Zero Parse Errors ✅ (Godot 4.4.1 headless build check)
+### Commit: `d88ad98`
+
+LAST_RUN=20260513_0617
+
+
+---
+
+# v0.55 — Web Save Sync (IndexedDB)
+
+### New Files
+- `scripts/gamestate.gd` — Enhanced GameState autoload
+  - Detects web platform automatically (`OS.has_feature("web")`)
+  - Saves to `localStorage` via `JavaScriptBridge` when on web
+  - Falls back to `user://` file on native builds
+  - Auto-syncs every 30 seconds during gameplay
+  - Syncs on scene changes and game pause
+
+### Updated
+- `project.godot` — GameState autoload persists across scenes
+- All chapter scenes call `GameState.save_game()` on completion
+
+### Zero Parse Errors ✅
+### Commit: `a97fab5`
+
+LAST_RUN=20260513_0446
+
+
+---
+
+# v0.57 — Hit-Stop (Freeze Frames on Impact)
+
+### New Files
+- `scripts/hit_stop.gd` — Global HitStop autoload
+  - `trigger(ms)` pauses `Engine.time_scale = 0` for N milliseconds
+  - Accumulates freeze time if triggered again while frozen (combo feel)
+  - `trigger_light()` = 80ms default, `trigger_heavy()` = 150ms
+  - Capped at `max_freeze_ms` (250ms) to prevent stunlock
+  - Uses `get_tree().create_timer(..., true)` with physics process
+
+### Updated
+- `project.godot` — added HitStop to `[autoload]` alongside ScreenShake
+- `scripts/player.gd` — HitStop on take_damage (light/heavy) + on attack hit
+- `scripts/skeleton.gd` — HitStop on attack_hitbox body_entered
+- `scripts/skeleton_captain.gd` — HitStop.heavy() on attack_hitbox connect
+- `scripts/arrow.gd` — HitStop on player hit
+
+### Design Rationale
+- Freeze frames make impacts feel weightier without changing any damage numbers
+- Light freeze on normal hits (80ms), heavy on big hits (150ms)
+- Combo accumulation prevents rapid-fire attacks from feeling weaker
+- 250ms cap keeps game responsive — never freezes longer than 1/4 second
+
+### Zero Parse Errors ✅
+### Commit: `b99b903`
+
+LAST_RUN=20260513_0953
+
+
+---
+
+# v0.58 — Health Persistence Across Chapters
+
+### Changes
+- GameState: added `saved_health` + `saved_max_health` fields (version bumped to 1.1)
+- `_setup_level()`: applies saved health to player at chapter start
+- `_update_label()`: auto-saves HP so Continue works correctly
+- Between-chapter heal: +25 HP on chapter complete
+- Title screen version: updated to v0.57 (released)
+
+### Design Rationale
+- Save system already existed; this makes it *work* for the gameplay loop
+- Continue button now restores player to actual saved HP, not full heal
+- Inter-chapter heal keeps tension without punishing too hard
+- Backwards compatible: old save files without saved_health default to 100
+
+### Zero Parse Errors ✅
+### Commit: TBD
+
+LAST_RUN=20260513_1051
+
+
+---
+
+# v0.62 — Pause Menu
+
+### New Files
+- `scripts/pause_menu.gd` — Runtime pause overlay
+  - Full-screen overlay with semi-transparent backdrop
+  - Resume, Restart Chapter, Mute/Unmute, Quit to Title buttons
+  - Blocks input behind it (mouse_filter = STOP)
+  - ESC key toggles pause; R restarts (pauses first), C toggles chapter manager
+  - `Engine.time_scale = 0` when paused, z_index=100
+  - Works in both native and HTML5 builds
+
+### Updated
+- `scripts/level_manager.gd` — instantiates pause_menu via script.new(), calls setup()
+  - _input() checks pause_menu state before scene reload / chapter manager toggle
+- `project.godot` — added `pause` input action (ESC key, keycode 4194305)
+- `scenes/main.tscn` — instructions label updated: added ESC=Pause text
+- `scenes/title_screen.tscn` — version bumped to v0.62
+
+### Design Rationale
+- Runtime UI = no .tscn fragility, works the same across scenes
+- Pause stops combat, dialogue, and all timers
+- Mute button syncs with AudioManager state
+- Quit to Title clears GameState chapter data and returns to title screen
+
+---
+
+# v0.63 — Dodge Roll + Screen Fade Transitions
+
+### New Files
+- `scripts/screen_fader.gd` — Autoload CanvasLayer with ColorRect overlay
+  - `fade_to_black(duration)` returns Signal → tween to Color.BLACK
+  - `fade_from_black(duration)` returns Signal → tween to Color.TRANSPARENT
+  - `flash_white(duration)` returns Signal → brief white flash
+- `scenes/screen_fader.tscn` — CanvasLayer (layer=99) + full-screen ColorRect (mouse_filter=PASS)
+
+### Updated
+- `project.godot`
+  - Added `skill1` input action (LEFT SHIFT, keycode 4194325)
+  - Added `ScreenFader` to `[autoload]`
+- `scripts/player.gd`
+  - Dodge roll: `is_dodging` state, I-frames during roll (no damage)
+  - Constants: `DODGE_DURATION=0.25s`, `DODGE_COOLDOWN=1.2s`, `DODGE_SPEED_MULT=3.0`
+  - Dash in facing direction at 3× speed during roll
+  - Visual: modulate opacity to 50%, flash back to white on end
+  - Attack hitbox disabled during dodge; no attacking while dodging
+  - `skill1` input wired → `_start_dodge()`; mobile `skill1_btn` now functional
+- `scripts/level_manager.gd`
+  - `_finish_chapter_complete()` now fades to black, increments chapter, reloads scene
+  - `_ready()` fades from black on level load
+  - Updated control hint: added LEFT SHIFT = dodge
+- `scripts/autoload/audio_manager.gd`
+  - Added `dodge_roll` to SFX preload list (placeholder, no asset yet)
+
+### Design Rationale
+- Dodge roll: gives player a defensive option without adding shield/block complexity
+  - I-frames prevent "tank everything" — requires timing, not mashing
+  - Short duration (0.25s) + long cooldown (1.2s) = high risk/reward
+  - Visual opacity communicates invulnerability window
+- Fade transitions: polish for chapter flow
+  - Eliminates jarring instant reload on chapter complete
+  - Consistent with pause menu overlay pattern (CanvasLayer autoload)
+  - Can be reused for death respawn, cutscene transitions
+
+### Version Changes
+- PROMPT_PACK.md updated: skill system marked functional, UI note updated
+
+### Zero Parse Errors ✅ (manual review + GDScript syntax)
+### Commit: `67a8111`
+
+LAST_RUN=20260513_1232
+
+# v0.67 — AnimatedSprite2D + Procedural Sprite Sheets
+
+### New Files
+- `scripts/generate_sprites_v2.py` — Procedural sprite sheet generator
+  - Generates horizontal strip sprite sheets (idle/walk/attack) for all characters
+  - Player: 3 idle, 3 walk, 4 attack frames
+  - Skeleton: 2 idle, 2 walk, 2 attack frames
+  - Captain: 2 idle, 2 walk, 2 attack frames (with shield overlay)
+  - Archer: 2 idle, 2 walk frames
+  - Merchant: 2 idle frames
+- `assets/art/characters/player_idle.png` (3 frames, 96×32px)
+- `assets/art/characters/player_walk.png` (3 frames, 96×32px)
+- `assets/art/characters/player_attack.png` (4 frames, 128×32px)
+- `assets/art/enemies/skeleton_idle.png` (2 frames, 64×32px)
+- `assets/art/enemies/skeleton_walk.png` (2 frames, 64×32px)
+- `assets/art/enemies/skeleton_attack.png` (2 frames, 64×32px)
+- `assets/art/enemies/captain_idle.png` (2 frames, 64×32px)
+- `assets/art/enemies/captain_walk.png` (2 frames, 64×32px)
+- `assets/art/enemies/captain_attack.png` (2 frames, 64×32px)
+- `assets/art/enemies/archer_idle.png` (2 frames, 64×32px)
+- `assets/art/enemies/archer_walk.png` (2 frames, 64×32px)
+- `assets/art/npcs/merchant_idle.png` (2 frames, 64×32px)
+
+### Updated Scenes
+- `scenes/player.tscn` — Polygon2D → AnimatedSprite2D with SpriteFrames (idle/walk/attack)
+- `scenes/skeleton.tscn` — Polygon2D → AnimatedSprite2D with SpriteFrames (idle/walk/attack)
+- `scenes/skeleton_captain.tscn` — Polygon2D → AnimatedSprite2D + Shield overlay preserved
+- `scenes/skeleton_archer.tscn` — Polygon2D → AnimatedSprite2D (idle/walk)
+- `scenes/merchant_ally.tscn` — Polygon2D → AnimatedSprite2D (idle)
+
+### Updated Scripts
+- `scripts/player.gd` — `$Polygon2D` → `$AnimatedSprite2D`, play("idle/walk/attack") state machine
+- `scripts/skeleton.gd` — `$Polygon2D` → `$AnimatedSprite2D`, animation state machine (idle/chase/attack)
+- `scripts/skeleton_captain.gd` — `$Polygon2D` → `$AnimatedSprite2D`, animation state machine + shield overlay
+- `scripts/skeleton_archer.gd` — `$Polygon2D` → `$AnimatedSprite2D`, animation state machine (idle/walk/move)
+
+### Architecture
+- All characters now use AnimatedSprite2D with named animations
+- Animation states: idle, walk, attack (per character type)
+- Player: idle↔walk on movement, attack on input, dodge uses modulate opacity
+- Enemies: idle when stationary, walk when chasing, attack on attack
+- Captain retains Shield Polygon2D overlay (visual only, separate from sprite)
+- Procedural sprites: 16×16 logical px, scaled 2× = 32×32 display, palette-based pixel art
+- `generate_sprites_v2.py` can be re-run to regenerate all sprite sheets
+
+### Must-Have #1 Status: ✅ DONE (v0.67)
+Procedural sprites + AnimatedSprite2D replaces all Polygon2D visuals.
+Polygon2D kept only as captain shield overlay (visual effect, not character body).
+
+### Zero Parse Errors ✅ (manual review)
+### Commit: TBD
+
+LAST_RUN=20260514_0710
+
+# v0.70 — Act 2 Complete + Combat 2.0
+
+### New Content
+- **Act 2 chapters 5-10** — full JSON data with enemies, dialogue, rewards
+  - Ch5: The Merchant's Trail (bandit ambush)
+  - Ch6: The Whispering Ruins (ghost defenders)
+  - Ch7: The Assassin's Gambit (assassin + archer ambush)
+  - Ch8: The Crimson Lieutenant (boss: lieutenant + golem)
+  - Ch9: The Wagon Fortress (wave defense, 2 merchant allies)
+  - Ch10: The Capital Gates (Act boss: Gate Warden + 2 golems)
+
+### New Enemies
+- **Ghost** (`ghost.gd`, 180 lines) — phases tangible/ethereal, dodge chance
+- **Bandit** (`bandit.gd`, 150 lines) — flanking AI, circles behind player
+- **Assassin** (`assassin.gd`, 187 lines) — vanishes + teleports behind, poison attacks
+- **Golem** (`golem.gd`, 172 lines) — armor tank, stun on hit, ground pound
+- **Bandit Lieutenant** — boss variant with shield charges (uses extended captain logic)
+- **Gate Warden** — Act 2 end boss with phase 2 threshold
+
+### New Weapons
+- **Spirit Edge** (18 DMG, 0.35s CD) — ghost-forged blade
+- **Crimson Edge** (22 DMG, 0.45s CD) — Fang officer's saber
+- **Warden's Halberd** (28 DMG, 0.60s CD) — Act 2 end reward
+
+### New Skills
+- **Whirlwind Slash** — spin attack hits all enemies in radius
+- **Shadow Step** — teleport behind nearest enemy + stab
+- **Battle Cry** — heal 15% HP + 30% damage buff for 3s
+
+### Combat 2.0
+- **Charged heavy attack** — hold attack button, release for 2.5x damage
+- **Poison system** — assassin applies poison DOT to player
+- **Potion use** — Q key / potion button, consumes from inventory
+- **Inventory system** — weapons, skills, potions, gold, artifacts
+- **Settings screen** — master/SFX/BGM volume, shake, hitstop, damage numbers, auto-aim, text speed
+- **Skill slots** — equip up to 3 skills in inventory, bound to keys 1/2/3
+- **Mobile controls** — skill2 + potion buttons on HUD
+
+### Updated Files
+- `scripts/player.gd` — charged attack, whirlwind, shadow step, battle cry, poison handling
+- `scripts/autoload/game_state.gd` — inventory, settings, new weapons/skills, save v2.0
+- `scripts/mobile_controls.gd` — skill2 + potion buttons, dynamic skill labels
+- `scripts/settings_screen.gd` — full settings UI (new)
+- `scripts/inventory_screen.gd` — weapon/skill equip UI (new)
+- `builds/web/sw.js` — updated service worker v0.70
+- `builds/web/manifest.json` — updated PWA manifest
+- `scripts/patch_pwa.sh` — improved PWA injection script
+
+### Total Content
+- **Chapters**: 10 (Act 1: 1-4, Act 2: 5-10)
+- **Enemy types**: 8 (skeleton, archer, captain, ghost, bandit, assassin, golem, dummy)
+- **Boss types**: 3 (Skeleton Captain, Bandit Lieutenant, Gate Warden)
+- **Weapons**: 6 (broken sword → warden's halberd)
+- **Skills**: 4 (dodge roll, whirlwind slash, shadow step, battle cry)
+- **GDScript**: ~4,200 lines across 32 scripts

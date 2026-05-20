@@ -1,0 +1,51 @@
+# === Secrets & Credentials ===
+*.pem
+*.key
+*_token*
+*.env
+.env.*
+credentials*
+secrets*
+
+# === Godot Engine ===
+.godot/imported/
+.godot/editor/
+.godot/uid_cache.bin
+.godot/global_script_class_cache.cfg
+.godot/scene_groups_cache.cfg
+*.import
+*.translation
+
+# === Dependencies ===
+node_modules/
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# === OS ===
+.DS_Store
+Thumbs.db
+.directory
+*~
+
+# === Logs ===
+*.log
+logs/
+
+# === Build artifacts (keep sw.js and manifest.json) ===
+builds/web/*.side.wasm
+builds/web/*.audio.worklet.js
+builds/web/*.pck
+builds/web/*.wasm
+builds/web/index.html
+builds/web/Swordjin.js
+builds/android/
+builds/ios/
+builds/linux/
+dist/
+
+# === User data ===
+*.save
+*.sav

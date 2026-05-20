@@ -1,0 +1,49 @@
+{
+  "chapter_id": "act02_ch006",
+  "title": "The Whispering Ruins",
+  "act": 2,
+  "chapter": 6,
+  "type": "combat",
+  "playtime_estimate_minutes": 4,
+  "objective": "Clear the ancient ruins of ghostly defenders",
+  "background_color": [0.08, 0.06, 0.18],
+  "theme": "fortress",
+  "enemies": [
+    {
+      "type": "ghost",
+      "count": 3,
+      "positions": [
+        {"x": 200, "y": 100},
+        {"x": 400, "y": 200},
+        {"x": 550, "y": 150}
+      ],
+      "stats": {"health": 35, "speed": 60, "damage": 18}
+    },
+    {
+      "type": "ghost",
+      "count": 1,
+      "positions": [{"x": 320, "y": 250}],
+      "stats": {"health": 60, "speed": 55, "damage": 24}
+    }
+  ],
+  "dialogue": [
+    {
+      "speaker": "JIN",
+      "text": "Ghosts. Physical blades won't work well — gotta time the strikes.",
+      "trigger": "start"
+    },
+    {
+      "speaker": "SPIRIT",
+      "text": "The sword you carry... it remembers its master. Prove you are worthy.",
+      "trigger": "objective_complete"
+    }
+  ],
+  "rewards": {
+    "xp": 120,
+    "unlock_chapter": "act02_ch007",
+    "gold": 25,
+    "unlock_weapon": "spirit_edge"
+  },
+  "next_chapter": "act02_ch007",
+  "is_unlocked": false
+}

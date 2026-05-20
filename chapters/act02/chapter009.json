@@ -1,0 +1,65 @@
+{
+  "chapter_id": "act02_ch009",
+  "title": "The Wagon Fortress",
+  "act": 2,
+  "chapter": 9,
+  "type": "combat",
+  "playtime_estimate_minutes": 4,
+  "objective": "Defend the merchant's wagon fortress from a massive bandit wave",
+  "background_color": [0.18, 0.14, 0.08],
+  "theme": "field",
+  "enemies": [
+    {
+      "type": "bandit",
+      "count": 5,
+      "positions": [
+        {"x": 100, "y": 80},
+        {"x": 250, "y": 150},
+        {"x": 400, "y": 60},
+        {"x": 550, "y": 180},
+        {"x": 300, "y": 280}
+      ],
+      "stats": {"health": 45, "speed": 95, "damage": 14}
+    },
+    {
+      "type": "skeleton_archer",
+      "count": 2,
+      "positions": [
+        {"x": 500, "y": 250},
+        {"x": 120, "y": 220}
+      ],
+      "stats": {"health": 35, "speed": 50, "damage": 12}
+    }
+  ],
+  "allies": [
+    {
+      "type": "merchant_ally",
+      "count": 2,
+      "positions": [
+        {"x": 300, "y": 200},
+        {"x": 350, "y": 220}
+      ],
+      "stats": {"health": 70, "speed": 60, "heal_amount": 10}
+    }
+  ],
+  "dialogue": [
+    {
+      "speaker": "MERCHANT",
+      "text": "They're throwing everything at us! The wagon fortress must hold!",
+      "trigger": "start"
+    },
+    {
+      "speaker": "JIN",
+      "text": "They broke. The road to the capital is clear — for now.",
+      "trigger": "objective_complete"
+    }
+  ],
+  "rewards": {
+    "xp": 180,
+    "unlock_chapter": "act02_ch010",
+    "gold": 50,
+    "unlock_skill": "battle_cry"
+  },
+  "next_chapter": "act02_ch010",
+  "is_unlocked": false
+}

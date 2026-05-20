@@ -1,0 +1,56 @@
+{
+  "chapter_id": "act02_ch007",
+  "title": "The Assassin's Gambit",
+  "act": 2,
+  "chapter": 7,
+  "type": "combat",
+  "playtime_estimate_minutes": 4,
+  "objective": "Survive the assassin ambush in the dark fortress",
+  "background_color": [0.06, 0.04, 0.08],
+  "theme": "dark_fortress",
+  "enemies": [
+    {
+      "type": "assassin",
+      "count": 2,
+      "positions": [
+        {"x": 500, "y": 80},
+        {"x": 180, "y": 280}
+      ],
+      "stats": {"health": 45, "speed": 140, "damage": 20}
+    },
+    {
+      "type": "skeleton_archer",
+      "count": 2,
+      "positions": [
+        {"x": 550, "y": 180},
+        {"x": 100, "y": 100}
+      ],
+      "stats": {"health": 30, "speed": 50, "damage": 10}
+    }
+  ],
+  "dialogue": [
+    {
+      "speaker": "JIN",
+      "text": "An ambush in the dark? This is the Crimson Fang's work.",
+      "trigger": "start"
+    },
+    {
+      "speaker": "ASSASSIN",
+      "text": "Heh... the Crimson Fang sends their regards. You've been marked, Swordjin.",
+      "trigger": "mid_combat"
+    },
+    {
+      "speaker": "JIN",
+      "text": "Marked or not — I'll carve through every assassin they send.",
+      "trigger": "objective_complete"
+    }
+  ],
+  "rewards": {
+    "xp": 150,
+    "unlock_chapter": "act02_ch008",
+    "gold": 40,
+    "unlock_skill": "shadow_step"
+  },
+  "next_chapter": "act02_ch008",
+  "is_unlocked": false
+}
