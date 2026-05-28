@@ -62,6 +62,14 @@ func _ready():
 	$Objective.text = "Objective: " + chapter_data.get("objective", "Defeat enemies!")
 	$LevelLabel.text = chapter_data.get("title", "Level 1")
 	
+	# Show rested XP indicator if active
+	if GameState.rested_chapters_remaining > 0:
+		$RestedLabel.text = "🔥 2× XP (%d chapters left)" % GameState.rested_chapters_remaining
+		$RestedLabel.visible = true
+	else:
+		$RestedLabel.text = ""
+		$RestedLabel.visible = false
+	
 	# Background handled by ArenaBuilder tilemap
 	# (ColorRect removed by arena builder)
 	

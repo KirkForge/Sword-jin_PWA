@@ -165,6 +165,8 @@ func _ready():
 	if daily_streak > 0:
 		print("📅 Daily streak: %d days" % daily_streak)
 
+signal achievement_unlocked(ach_id: String)
+
 # ── SAVE / LOAD ──
 
 func save_game():
@@ -477,6 +479,7 @@ func unlock_achievement(id: String) -> bool:
 	unlocked_achievements.append(id)
 	var ach = ACHIEVEMENTS[id]
 	print("🏆 Achievement Unlocked: %s %s — %s" % [ach["icon"], ach["name"], ach["desc"]])
+	achievement_unlocked.emit(id)
 	save_game()
 	return true
 

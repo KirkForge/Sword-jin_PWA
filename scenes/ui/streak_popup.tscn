@@ -1,0 +1,56 @@
+[gd_scene load_steps=2 format=3 uid="uid://streak_popup_scene"]
+
+[ext_resource type="Script" path="res://scripts/streak_popup.gd" id="1_streak"]
+
+[node name="StreakPopup" type="CanvasLayer"]
+layer = 15
+visible = false
+script = ExtResource("1_streak")
+
+[node name="Panel" type="Panel" parent="."]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -160.0
+offset_top = -80.0
+offset_right = 160.0
+offset_bottom = 80.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Panel"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 16.0
+offset_top = 16.0
+offset_right = -16.0
+offset_bottom = -16.0
+grow_horizontal = 2
+grow_vertical = 2
+alignment = 1
+
+[node name="StreakLabel" type="Label" parent="Panel/VBoxContainer"]
+theme_override_font_sizes/font_size = 24
+text = "📆 Day 1 Streak!"
+horizontal_alignment = 1
+
+[node name="RewardLabel" type="Label" parent="Panel/VBoxContainer"]
+theme_override_font_sizes/font_size = 18
+text = "+10 Gold"
+horizontal_alignment = 1
+
+[node name="RestedLabel" type="Label" parent="Panel/VBoxContainer"]
+theme_override_font_sizes/font_size = 14
+text = "🔥 Rested XP Active!"
+horizontal_alignment = 1
+visible = false
+
+[node name="Spacer" type="Control" parent="Panel/VBoxContainer"]
+custom_minimum_size = Vector2(0, 12)
+
+[node name="ContinueButton" type="Button" parent="Panel/VBoxContainer"]
+custom_minimum_size = Vector2(120, 36)
+text = "Continue"

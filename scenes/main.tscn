@@ -1,7 +1,9 @@
-[gd_scene load_steps=7 format=3 uid="uid://main_scene"]
+[gd_scene load_steps=9 format=3 uid="uid://main_scene"]
 
 [ext_resource type="PackedScene" uid="uid://player_scene" path="res://scenes/player.tscn" id="1"]
 [ext_resource type="Script" path="res://scripts/level_manager.gd" id="2"]
+[ext_resource type="PackedScene" uid="uid://achievement_popup_scene" path="res://scenes/ui/achievement_popup.tscn" id="3_ach_popup"]
+[ext_resource type="PackedScene" uid="uid://streak_popup_scene" path="res://scenes/ui/streak_popup.tscn" id="4_streak_popup"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_1"]
 size = Vector2(640, 16)
@@ -83,3 +85,16 @@ grow_horizontal = 0
 theme_override_font_sizes/font_size = 11
 text = "Level 1"
 horizontal_alignment = 2
+
+[node name="RestedLabel" type="Label" parent="."]
+offset_left = 10.0
+offset_top = 50.0
+offset_right = 200.0
+offset_bottom = 68.0
+theme_override_font_sizes/font_size = 10
+text = ""
+self_modulate = Color(1, 0.5, 0, 1)
+
+[node name="AchievementPopup" parent="." instance=ExtResource("3_ach_popup")]
+
+[node name="StreakPopup" parent="." instance=ExtResource("4_streak_popup")]
