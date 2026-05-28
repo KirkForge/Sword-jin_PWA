@@ -1,6 +1,6 @@
 extends CanvasLayer
 # VictoryScreen — Chapter complete overlay
-# v0.66: Shows XP gain + gold earned + weapon unlock with Continue / Chapter Select buttons
+# v0.74: Star ratings (⭐-⭐⭐⭐) + XP + gold + weapon unlock
 
 signal next_chapter_pressed
 signal chapter_select_pressed
@@ -8,6 +8,7 @@ signal title_screen_pressed
 
 @onready var panel = $Panel
 @onready var title_label = $Panel/VBoxContainer/TitleLabel
+@onready var stars_label = $Panel/VBoxContainer/StarsLabel
 @onready var xp_label = $Panel/VBoxContainer/XPLabel
 @onready var gold_label = $Panel/VBoxContainer/GoldLabel
 @onready var reward_label = $Panel/VBoxContainer/RewardLabel
@@ -26,12 +27,20 @@ func _ready():
 	title_btn.pressed.connect(_on_title)
 	title_btn.visible = false  # Hidden by default, shown for final chapter
 
-func show_victory(chapter_title: String, xp_gained: int, gold_gained: int = 0, reward_weapon: String = "", reward_skill: String = ""):
+func show_victory(chapter_title: String, xp_gained: int, gold_gained: int = 0, reward_weapon: String = "", reward_skill: String = "", stars: int = 1):
 	# Pause the game
 	get_tree().paused = true
 	
 	# Title
 	title_label.text = "VICTORY: " + chapter_title
+	
+	# Stars display with criteria hint
+	var star_text := ""
+	for i in range(3):
+		star_text += "⭐" if i < stars else "☆"
+	stars_label.text = star_text
+	stars_label.add_theme_color_override("font_color", Color(1.0, 0.843, 0.0))  # Gold
+	stars_label.visible = true
 	
 	# XP line
 	xp_label.text = "XP Gained: " + str(xp_gained)
@@ -60,7 +69,7 @@ func show_victory(chapter_title: String, xp_gained: int, gold_gained: int = 0, r
 	
 	# Act Complete state for final chapter
 	if not _has_next_chapter:
-		title_label.text = "ACT 1 COMPLETE"
+		title_label.text = "ACT %d COMPLETE" % GameState.current_act
 		title_label.add_theme_color_override("font_color", Color(1.0, 0.843, 0.0))  # Gold #FFD700
 		title_btn.visible = true
 	else:

@@ -1,4 +1,4 @@
-// Swordjin PWA Service Worker v0.70
+// Swordjin PWA Service Worker v0.74
 const CACHE_NAME = 'swordjin-v0-70';
 const ASSETS_TO_CACHE = [
   '/',

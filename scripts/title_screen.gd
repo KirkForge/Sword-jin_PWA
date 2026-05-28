@@ -5,6 +5,7 @@ extends Control
 @onready var start_btn = $CenterContainer/VBoxContainer/StartButton
 @onready var continue_btn = $CenterContainer/VBoxContainer/ContinueButton
 @onready var select_btn = $CenterContainer/VBoxContainer/SelectButton
+@onready var stars_label = $CenterContainer/VBoxContainer/StarsLabel
 @onready var chm = $ChapterManager
 
 func _ready():
@@ -17,6 +18,15 @@ func _ready():
 	if GameState.completed_chapters.is_empty():
 		continue_btn.disabled = true
 		continue_btn.modulate = Color.GRAY
+	
+	# Show star progress
+	var total_stars := GameState.get_total_stars()
+	var max_stars := GameState.get_max_possible_stars()
+	if total_stars > 0:
+		stars_label.text = "⭐ %d / %d" % [total_stars, max_stars]
+		stars_label.add_theme_color_override("font_color", Color(1.0, 0.843, 0.0))
+	else:
+		stars_label.text = ""
 
 func _on_start_pressed():
 	ChapterDatabase.set_current_chapter("act01_ch001")

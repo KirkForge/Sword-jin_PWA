@@ -1,6 +1,6 @@
 extends Node
 # GameState — Persistent save/load + progression tracking
-# v0.70 — inventory system, new weapons/skills, poison tracking
+# v0.74 — chapter star ratings, death tracking, par times
 
 const SAVE_FILE := "user://swordjin_save.json"
 
@@ -75,13 +75,23 @@ var poison_tick_rate: float = 1.0
 var damage_buff_mult: float = 1.0
 var damage_buff_timer: float = 0.0
 
+# Chapter Stars (chapter_id → 1-3 stars)
+# ⭐ = complete the chapter
+# ⭐⭐ = complete without dying
+# ⭐⭐⭐ = complete under par time
+var chapter_stars: Dictionary = {}
+
+# Chapter performance tracking (runtime, reset per chapter)
+var chapter_start_time: float = 0.0
+var chapter_deaths: int = 0
+
 func _ready():
 	load_game()
 	print("GameState loaded — Act %d, Ch %d, Level %d, Weapon: %s, Skills: %s" % [current_act, current_chapter, player_level, equipped_weapon, str(equipped_skills)])
 
 func save_game():
 	var data := {
-		"version": "2.0",
+		"version": "2.1",
 		"current_act": current_act,
 		"current_chapter": current_chapter,
 		"completed_chapters": completed_chapters,
@@ -97,6 +107,7 @@ func save_game():
 		"has_gate_key": has_gate_key,
 		"inventory": inventory,
 		"settings": settings,
+		"chapter_stars": chapter_stars,
 	}
 	
 	var file := FileAccess.open(SAVE_FILE, FileAccess.WRITE)
@@ -142,6 +153,7 @@ func load_game():
 		saved_max_health = data.get("saved_max_health", 100)
 		has_gate_key = data.get("has_gate_key", false)
 		inventory = data.get("inventory", {"potions": 0, "keys": {}, "artifacts": [], "gold": 0})
+		chapter_stars = data.get("chapter_stars", {})
 		settings = data.get("settings", {
 			"master_volume": 1.0, "sfx_volume": 1.0, "bgm_volume": 0.7,
 			"screen_shake": true, "hit_stop": true, "show_damage_numbers": true,
@@ -158,6 +170,11 @@ func complete_current_chapter():
 	var chapter_id := "act%02d_ch%03d" % [current_act, current_chapter]
 	if not completed_chapters.has(chapter_id):
 		completed_chapters.append(chapter_id)
+	
+	# Calculate stars based on performance
+	var elapsed := (Time.get_ticks_msec() / 1000.0) - chapter_start_time
+	var stars := calculate_stars(chapter_id, chapter_deaths, elapsed)
+	print("Chapter %s complete — %d stars (deaths: %d, time: %.1fs)" % [chapter_id, stars, chapter_deaths, elapsed])
 	
 	var next_chapter_id: String = ChapterDatabase.get_current_chapter().get("next_chapter", "")
 	if next_chapter_id != "" and ChapterDatabase.chapters.has(next_chapter_id):
@@ -181,8 +198,40 @@ func complete_current_chapter():
 			equipped_skills.append(s)
 	
 	saved_health = mini(saved_health + 25, saved_max_health)
-	_save_indexeddb()
 	save_game()
+
+func calculate_stars(chapter_id: String, deaths: int, elapsed_time: float) -> int:
+	# ⭐ = complete (always at least 1)
+	# ⭐⭐ = no deaths
+	# ⭐⭐⭐ = no deaths + under par time
+	var stars := 1
+	if deaths == 0:
+		stars = 2
+	# Par time per chapter (seconds) — generous targets
+	var par_times := {
+		"act01_ch001": 60, "act01_ch002": 75, "act01_ch003": 90, "act01_ch004": 120,
+		"act02_ch005": 75, "act02_ch006": 90, "act02_ch007": 90, "act02_ch008": 120,
+		"act02_ch009": 120, "act02_ch010": 150,
+	}
+	var par_time: float = par_times.get(chapter_id, 120.0)
+	if deaths == 0 and elapsed_time <= par_time:
+		stars = 3
+	# Only upgrade, never downgrade
+	if chapter_stars.get(chapter_id, 0) < stars:
+		chapter_stars[chapter_id] = stars
+	return stars
+
+func get_stars(chapter_id: String) -> int:
+	return chapter_stars.get(chapter_id, 0)
+
+func get_total_stars() -> int:
+	var total := 0
+	for stars in chapter_stars.values():
+		total += stars
+	return total
+
+func get_max_possible_stars() -> int:
+	return ChapterDatabase.chapters.size() * 3
 
 func get_level_xp_requirement(level: int) -> int:
 	return level * level * 100
@@ -210,6 +259,8 @@ func reset_chapter_state():
 	poison_damage = 0
 	damage_buff_mult = 1.0
 	damage_buff_timer = 0.0
+	chapter_start_time = Time.get_ticks_msec() / 1000.0
+	chapter_deaths = 0
 
 func _save_indexeddb():
 	if OS.has_feature("web") and OS.has_feature("wasm"):

@@ -242,6 +242,10 @@ func _finish_chapter_complete():
 	
 	GameState.complete_current_chapter()
 	
+	# Get stars earned this chapter
+	var chapter_id := "act%02d_ch%03d" % [GameState.current_act, GameState.current_chapter]
+	var stars: int = GameState.get_stars(chapter_id)
+	
 	# Show victory screen instead of instant reload
 	victory_screen = victory_screen_scene.instantiate()
 	add_child(victory_screen)
@@ -254,7 +258,8 @@ func _finish_chapter_complete():
 		xp_gained,
 		gold_gained,
 		reward_weapon,
-		reward_skill
+		reward_skill,
+		stars
 	)
 	
 	victory_screen.next_chapter_pressed.connect(_on_victory_next)

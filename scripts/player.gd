@@ -266,7 +266,8 @@ func show_damage_number(amount: int, is_heal := false):
 
 func _die():
 	is_dead = true
-	print("Player defeated!")
+	GameState.chapter_deaths += 1
+	print("Player defeated! (deaths this chapter: %d)" % GameState.chapter_deaths)
 	modulate = Color.DARK_BLUE
 	velocity = Vector2.ZERO
 	$CollisionShape2D.set_deferred("disabled", true)
