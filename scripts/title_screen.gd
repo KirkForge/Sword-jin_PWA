@@ -6,9 +6,11 @@ extends Control
 @onready var continue_btn = $CenterContainer/VBoxContainer/ContinueButton
 @onready var select_btn = $CenterContainer/VBoxContainer/SelectButton
 @onready var stats_btn = $CenterContainer/VBoxContainer/StatsButton
+@onready var daily_btn = $CenterContainer/VBoxContainer/DailyButton
 @onready var chm = $ChapterManager
 
 var stats_screen: CanvasLayer = null
+var daily_challenge_screen: CanvasLayer = null
 var streak_popup_shown := false
 
 func _ready():
@@ -21,6 +23,13 @@ func _ready():
 	if GameState.completed_chapters.is_empty():
 		continue_btn.disabled = true
 		continue_btn.modulate = Color.GRAY
+	
+	# Highlight daily challenge if available
+	if GameState.has_daily_challenge_available():
+		daily_btn.text = "⚔️ DAILY CHALLENGE 🆕"
+		daily_btn.add_theme_color_override("font_color", Color(1.0, 0.843, 0.0))
+	else:
+		daily_btn.text = "📅 Daily Challenge ✅"
 	
 	# Show daily streak popup on first visit
 	_show_streak_popup_if_needed()
@@ -86,6 +95,33 @@ func _on_stats_pressed():
 		stats_screen.back_pressed.connect(_on_stats_back)
 	stats_screen.show_stats()
 	$CenterContainer.visible = false
+
+func _on_daily_pressed():
+	AudioManager.play_sfx("ui_click")
+	if not daily_challenge_screen:
+		var daily_scene = load("res://scenes/ui/daily_challenge_screen.tscn")
+		daily_challenge_screen = daily_scene.instantiate()
+		add_child(daily_challenge_screen)
+		daily_challenge_screen.back_pressed.connect(_on_daily_back)
+		daily_challenge_screen.challenge_accepted.connect(_on_daily_accept)
+	daily_challenge_screen.show_challenge()
+	$CenterContainer.visible = false
+
+func _on_daily_back():
+	$CenterContainer.visible = true
+	start_btn.grab_focus()
+
+func _on_daily_accept():
+	# Load the daily challenge chapter with modifiers
+	var challenge = GameState.get_daily_challenge()
+	var base_id = challenge.get("base_chapter", "act01_ch001")
+	ChapterDatabase.set_current_chapter(base_id)
+	GameState.reset_chapter_state()
+	# Store modifiers for level_manager to apply
+	GameState.daily_modifiers = challenge.get("modifiers", {})
+	AudioManager.play_sfx("ui_click")
+	AudioManager.stop_bgm(0.5)
+	get_tree().change_scene_to_file("res://scenes/main.tscn")
 
 func _on_stats_back():
 	$CenterContainer.visible = true

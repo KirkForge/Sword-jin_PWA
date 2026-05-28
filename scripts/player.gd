@@ -203,6 +203,12 @@ func take_damage(amount: int):
 	if is_dead or is_dodging:
 		return
 	
+	# Apply daily challenge Glass Cannon modifier
+	if GameState.daily_modifiers.has("mods"):
+		for mod in GameState.daily_modifiers.mods:
+			if mod.get("player_damage_mult", 1.0) > 1.0:
+				amount = int(float(amount) * mod.player_damage_mult)
+	
 	health -= amount
 	GameState.chapter_damage_taken += amount  # Track for star rating
 	_update_label()

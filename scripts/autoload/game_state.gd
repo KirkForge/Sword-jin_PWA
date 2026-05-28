@@ -68,6 +68,7 @@ const ACHIEVEMENTS := {
 	"level_25":         {"name": "Legend",             "desc": "Reach level 25",                   "icon": "🌟"},
 	"gold_hoarder":     {"name": "Gold Hoarder",       "desc": "Accumulate 500 gold",              "icon": "💰"},
 	"bestiary_master":  {"name": "Bestiary Master",     "desc": "Reach 100 kills on 3 enemy types", "icon": "🐉"},
+	"daily_warrior":    {"name": "Daily Warrior",        "desc": "Complete a daily challenge",       "icon": "📅"},
 }
 
 # ── Rested XP constants ──
@@ -158,6 +159,13 @@ var rested_xp_pool: int = 0            # accumulated rested XP available
 var rested_chapters_remaining: int = 0  # chapters left with 2x bonus
 var last_logout_time: int = 0          # unix timestamp
 
+# ── RETENTION: Daily Challenge ──
+var daily_challenge_date: String = ""   # "YYYY-MM-DD" of current challenge
+var daily_challenge_completed: bool = false
+var daily_challenge_best_time: float = 0.0  # best completion time in seconds
+var daily_challenge_stars: int = 0
+var daily_modifiers: Dictionary = {}  # Active daily challenge modifiers
+
 func _ready():
 	load_game()
 	_process_daily_streak()
@@ -200,6 +208,10 @@ func save_game():
 		"rested_xp_pool": rested_xp_pool,
 		"rested_chapters_remaining": rested_chapters_remaining,
 		"last_logout_time": last_logout_time,
+		"daily_challenge_date": daily_challenge_date,
+		"daily_challenge_completed": daily_challenge_completed,
+		"daily_challenge_best_time": daily_challenge_best_time,
+		"daily_challenge_stars": daily_challenge_stars,
 	}
 	
 	var file := FileAccess.open(SAVE_FILE, FileAccess.WRITE)
@@ -264,6 +276,10 @@ func load_game():
 		rested_xp_pool = data.get("rested_xp_pool", 0)
 		rested_chapters_remaining = data.get("rested_chapters_remaining", 0)
 		last_logout_time = data.get("last_logout_time", 0)
+		daily_challenge_date = data.get("daily_challenge_date", "")
+		daily_challenge_completed = data.get("daily_challenge_completed", false)
+		daily_challenge_best_time = data.get("daily_challenge_best_time", 0.0)
+		daily_challenge_stars = data.get("daily_challenge_stars", 0)
 		
 		print("Save loaded — HP %d/%d, weapon: %s, stars: %d, bestiary: %d" % [
 			saved_health, saved_max_health, equipped_weapon,
@@ -287,6 +303,10 @@ func _init_new_game():
 	rested_xp_pool = 0
 	rested_chapters_remaining = 0
 	last_logout_time = 0
+	daily_challenge_date = ""
+	daily_challenge_completed = false
+	daily_challenge_best_time = 0.0
+	daily_challenge_stars = 0
 	save_game()
 
 func _save_indexeddb():
@@ -717,6 +737,106 @@ func apply_settings():
 	AudioManager.set_master_volume(settings.master_volume)
 	AudioManager.set_sfx_volume(settings.sfx_volume)
 	AudioManager.set_bgm_volume(settings.bgm_volume)
+
+# ── Daily Challenge ──
+# Generates a deterministic daily challenge based on the current date.
+# Same challenge for all players on the same day. Resets at midnight.
+
+func get_daily_challenge() -> Dictionary:
+	var today = _today_string()
+	if daily_challenge_date != today:
+		# New day — reset challenge state
+		daily_challenge_date = today
+		daily_challenge_completed = false
+		daily_challenge_best_time = 0.0
+		daily_challenge_stars = 0
+		save_game()
+	
+	# Seed from date string for deterministic generation
+	var seed_val = hash(today)
+	var rng = RandomNumberGenerator.new()
+	rng.seed = seed_val
+	
+	# Pick a random base chapter
+	var all_chapters = ChapterDatabase.chapters.keys()
+	if all_chapters.is_empty():
+		return {}
+	var base_id = all_chapters[rng.randi() % all_chapters.size()]
+	var base_data = ChapterDatabase.chapters.get(base_id, {})
+	if base_data.is_empty():
+		return {}
+	
+	# Generate modifiers based on seed
+	var modifiers = _generate_daily_modifiers(rng)
+	
+	return {
+		"challenge_id": "daily_%s" % today.replace("-", ""),
+		"base_chapter": base_id,
+		"title": "Daily: %s" % base_data.get("title", "Unknown"),
+		"objective": base_data.get("objective", "Survive!"),
+		"modifiers": modifiers,
+		"reward_gold": modifiers.reward_gold,
+		"reward_xp": modifiers.reward_xp,
+		"completed": daily_challenge_completed,
+		"best_time": daily_challenge_best_time,
+		"stars": daily_challenge_stars,
+	}
+
+func _generate_daily_modifiers(rng: RandomNumberGenerator) -> Dictionary:
+	# Pick 1-3 modifiers from the pool
+	var all_mods = [
+		{"name": "Rush", "desc": "Enemies move 30% faster", "speed_mult": 1.3, "icon": "⚡"},
+		{"name": "Iron Hide", "desc": "Enemies take 50% less damage", "damage_mult": 0.5, "icon": "🛡️"},
+		{"name": "Swarm", "desc": "2× enemy count", "count_mult": 2.0, "icon": "🐝"},
+		{"name": "Glass Cannon", "desc": "Player takes 2× damage", "player_damage_mult": 2.0, "icon": "💀"},
+		{"name": "No Potions", "desc": "No health potions drop", "no_potions": true, "icon": "🚫"},
+		{"name": "Tight Quarters", "desc": "Smaller arena", "arena_shrink": 0.7, "icon": "📏"},
+		{"name": "Vampiric", "desc": "Enemies heal on hit", "enemy_lifesteal": true, "icon": "🧛"},
+		{"name": "Heavy Hitters", "desc": "Enemies deal 2× damage", "enemy_damage_mult": 2.0, "icon": "💪"},
+	]
+	
+	var num_mods = rng.randi_range(1, 3)
+	var chosen = []
+	var indices = range(all_mods.size())
+	indices.shuffle()
+	# Use seeded shuffle for determinism
+	for i in range(min(num_mods, all_mods.size())):
+		chosen.append(all_mods[indices[i]])
+	
+	# Calculate bonus reward based on modifier difficulty
+	var difficulty_score = chosen.size()  # more mods = harder = better reward
+	var reward_gold = 20 + difficulty_score * 15 + rng.randi_range(0, 10)
+	var reward_xp = 50 + difficulty_score * 25 + rng.randi_range(0, 20)
+	
+	return {
+		"mods": chosen,
+		"reward_gold": reward_gold,
+		"reward_xp": reward_xp,
+	}
+
+func complete_daily_challenge(time_seconds: float, damage_taken: int, kills: int) -> void:
+	daily_challenge_completed = true
+	daily_challenge_best_time = max(daily_challenge_best_time, 0.0)
+	if daily_challenge_best_time == 0.0 or time_seconds < daily_challenge_best_time:
+		daily_challenge_best_time = time_seconds
+	
+	# Calculate stars for daily challenge
+	var stars = calculate_stars("daily", time_seconds, damage_taken, kills)
+	daily_challenge_stars = maxi(daily_challenge_stars, stars)
+	
+	# Reward gold and XP
+	var challenge = get_daily_challenge()
+	player_gold += challenge.get("reward_gold", 30)
+	player_xp += challenge.get("reward_xp", 75)
+	
+	# Mark daily challenge achievement progress
+	unlock_achievement("first_blood")  # at minimum they killed something
+	
+	save_game()
+
+func has_daily_challenge_available() -> bool:
+	var today = _today_string()
+	return daily_challenge_date != today or not daily_challenge_completed
 
 class ChapterProgress:
 	var chapter_id: String
