@@ -1,4 +1,5 @@
 extends CharacterBody2D
+var enemy_type := "golem"
 ## Golem — slow heavy construct with damage-reducing armor.
 ## Deals massive damage but attacks slowly. Stuns briefly after each hit.
 

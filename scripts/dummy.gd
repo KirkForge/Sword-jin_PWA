@@ -1,4 +1,5 @@
 extends CharacterBody2D
+var enemy_type := "dummy"
 
 @export var max_health := 50
 

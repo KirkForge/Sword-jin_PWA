@@ -1,4 +1,5 @@
 extends CharacterBody2D
+var enemy_type := "assassin"
 ## Assassin — Crimson Fang elite. Extremely fast with poison attacks.
 ## Periodically vanishes and reappears behind the player.
 

@@ -204,6 +204,7 @@ func take_damage(amount: int):
 		return
 	
 	health -= amount
+	GameState.chapter_damage_taken += amount  # Track for star rating
 	_update_label()
 	show_damage_number(amount)
 	

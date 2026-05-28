@@ -1,17 +1,17 @@
 extends CharacterBody2D
-var enemy_type := "bandit"
-## Bandit — fast flanking enemy. Tries to circle behind the player.
-## Lower HP than skeletons but faster and smarter positioning.
+var enemy_type := "wolf"
+## Wolf — Fast pack enemy. Low HP but attacks in swarms.
+## Circles the player and lunges in for quick bites.
 
 var damage_number_scene = preload("res://scenes/ui/damage_number.tscn")
 
-@export var max_health := 50
-@export var speed := 90.0
-@export var detection_range := 260.0
-@export var attack_range := 32.0
-@export var attack_damage := 12
-@export var attack_cooldown := 1.0
-@export var attack_duration := 0.3
+@export var max_health := 30
+@export var speed := 120.0
+@export var detection_range := 350.0
+@export var attack_range := 30.0
+@export var attack_damage := 8
+@export var attack_cooldown := 0.8
+@export var attack_duration := 0.2
 
 var health: int
 var player: Node2D = null
@@ -20,10 +20,12 @@ var attack_timer := 0.0
 var cooldown_timer := 0.0
 var is_dead := false
 
-# Bandit AI — flanking behavior
-var flank_direction := 1  # 1 = clockwise, -1 = counterclockwise
-var flank_timer := 0.0
-const FLANK_INTERVAL := 2.0
+# Wolf AI — circling behavior
+var circle_angle := 0.0
+var circle_speed := 2.0
+var circle_radius := 80.0
+var is_circling := true
+var lunge_speed := 350.0
 
 @onready var sprite = $AnimatedSprite2D
 @onready var attack_hitbox = $AttackHitbox/CollisionShape2D
@@ -34,7 +36,7 @@ const FLANK_INTERVAL := 2.0
 func _ready():
 	health = max_health
 	attack_hitbox.set_deferred("disabled", true)
-	flank_direction = 1 if randf() < 0.5 else -1
+	circle_angle = randf() * TAU
 	_update_label()
 	sprite.play("idle")
 	
@@ -53,11 +55,6 @@ func _physics_process(delta):
 	if cooldown_timer > 0:
 		cooldown_timer -= delta
 	
-	flank_timer -= delta
-	if flank_timer <= 0:
-		flank_direction = 1 if randf() < 0.5 else -1
-		flank_timer = FLANK_INTERVAL
-	
 	if not player or player.is_dead:
 		velocity = Vector2.ZERO
 		move_and_slide()
@@ -72,38 +69,51 @@ func _physics_process(delta):
 	elif to_player.x < 0:
 		sprite.scale.x = -1
 	
-	# Chase with flanking
-	if dist <= detection_range and dist > attack_range:
-		var dir = to_player.normalized()
-		# Add perpendicular component for flanking
-		var flank = Vector2(-dir.y, dir.x) * flank_direction * 0.4
-		velocity = (dir + flank).normalized() * speed
+	# Wolf AI: circle at distance, lunge when close
+	if dist <= detection_range:
+		if is_circling and dist > attack_range + 20:
+			# Circle the player
+			circle_angle += circle_speed * delta
+			var target = player.global_position + Vector2(cos(circle_angle), sin(circle_angle)) * circle_radius
+			velocity = (target - global_position).normalized() * speed
+			if not is_attacking:
+				sprite.play("walk")
+		elif dist <= attack_range and cooldown_timer <= 0 and not is_attacking:
+			# Lunge attack
+			_start_attack()
+		elif dist <= attack_range + 40 and not is_attacking:
+			# Close distance quickly
+			velocity = to_player.normalized() * speed * 1.3
+			sprite.play("walk")
+		else:
+			velocity = to_player.normalized() * speed * 0.8
+			if not is_attacking:
+				sprite.play("walk")
+	else:
+		# Wander toward player
+		velocity = to_player.normalized() * speed * 0.5
 		if not is_attacking:
 			sprite.play("walk")
-	elif dist <= attack_range and cooldown_timer <= 0 and not is_attacking:
-		_start_attack()
-		velocity = Vector2.ZERO
-	else:
-		velocity = Vector2.ZERO
-		if not is_attacking:
-			sprite.play("idle")
 	
 	move_and_slide()
 
 func _start_attack():
 	is_attacking = true
+	is_circling = false
 	attack_timer = attack_duration
 	cooldown_timer = attack_duration + attack_cooldown
 	attack_hitbox.disabled = false
 	sprite.play("attack")
-	AudioManager.play_random_pitch("sword_swing", 0.9, 1.1)
+	AudioManager.play_random_pitch("sword_swing", 1.2, 1.5)
 	
+	# Lunge toward player
 	if player:
 		var to_player = (player.global_position - global_position).normalized()
-		velocity = to_player * speed * 2.5
+		velocity = to_player * lunge_speed
 
 func _end_attack():
 	is_attacking = false
+	is_circling = true
 	attack_hitbox.disabled = true
 	velocity = Vector2.ZERO
 	sprite.play("idle")
@@ -124,7 +134,11 @@ func take_damage(amount: int):
 	health -= amount
 	_update_label()
 	show_damage_number(amount)
-	AudioManager.play_sfx("player_hurt")
+	AudioManager.play_sfx("skeleton_death")
+	
+	# Wolves scatter briefly when hit
+	is_circling = true
+	circle_angle += PI  # Jump to opposite side
 	
 	modulate = Color.RED
 	await get_tree().create_timer(0.1).timeout
@@ -136,7 +150,7 @@ func take_damage(amount: int):
 
 func _update_label():
 	if label:
-		label.text = "BANDIT\nHP:%d/%d" % [health, max_health]
+		label.text = "WOLF\nHP:%d/%d" % [health, max_health]
 	if health_bar:
 		health_bar.update_health(health, max_health)
 
@@ -146,19 +160,17 @@ func _die():
 	$CollisionShape2D.set_deferred("disabled", true)
 	attack_hitbox.set_deferred("disabled", true)
 	
-	if randf() < 0.25:
-		var potion_scene = preload("res://scenes/potion_pickup.tscn")
-		var potion = potion_scene.instantiate()
-		potion.global_position = global_position
-		get_tree().current_scene.add_child(potion)
-	
-	modulate = Color.DARK_GRAY
-	await get_tree().create_timer(0.3).timeout
+	# Wolf death — quick fade
+	modulate = Color.GRAY
+	var tween = create_tween()
+	tween.tween_property(self, "modulate:a", 0.0, 0.5)
+	await tween.finished
 	queue_free()
 
 func _on_attack_hitbox_body_entered(body):
 	if body.has_method("take_damage") and body != self:
 		body.take_damage(attack_damage)
+		HitStop.trigger_light()
 
 func _on_detection_area_body_entered(body):
 	if body.is_in_group("player"):

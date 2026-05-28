@@ -230,6 +230,12 @@ func _finish_chapter_complete():
 	if not allies.is_empty():
 		player.heal(25)
 	
+	# Record all enemy kills to bestiary
+	for child in get_children():
+		if child.is_in_group("enemy") and child.is_dead:
+			var enemy_type = child.enemy_type if child.get("enemy_type") else "skeleton"
+			GameState.record_kill(enemy_type)
+	
 	print("Chapter complete! Transitioning...")
 	AudioManager.play_sfx("level_complete")
 	
@@ -240,7 +246,18 @@ func _finish_chapter_complete():
 	var reward_weapon: String = rewards.get("unlock_weapon", "")
 	var reward_skill: String = rewards.get("unlock_skill", "")
 	
+	# Calculate chapter time for star rating
+	var chapter_time = Time.get_ticks_msec() / 1000.0 - GameState.chapter_start_time if GameState.chapter_start_time > 0 else 0.0
+	
 	GameState.complete_current_chapter()
+	
+	# Get star rating
+	var chapter_id = chapter_data.get("chapter_id", "")
+	var stars = GameState.chapter_stars.get(chapter_id, {}).get("stars", 1) if GameState.chapter_stars.get(chapter_id, {}) is Dictionary else 1
+	
+	# Loot roll
+	var loot = GameState.roll_loot(is_boss = chapter_data.get("boss", false))
+	gold_gained += loot["gold"]
 	
 	# Show victory screen instead of instant reload
 	victory_screen = victory_screen_scene.instantiate()
@@ -254,7 +271,9 @@ func _finish_chapter_complete():
 		xp_gained,
 		gold_gained,
 		reward_weapon,
-		reward_skill
+		reward_skill,
+		stars,
+		loot
 	)
 	
 	victory_screen.next_chapter_pressed.connect(_on_victory_next)

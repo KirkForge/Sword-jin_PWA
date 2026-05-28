@@ -1,4 +1,5 @@
 extends CharacterBody2D
+var enemy_type := "skeleton_captain"
 # SkeletonCaptain — Boss variant with shield + charge attack
 # Inherits base skeleton behavior, adds captain mechanics
 

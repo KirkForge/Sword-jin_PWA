@@ -1,0 +1,68 @@
+{
+  "chapter_id": "act03_ch015",
+  "title": "The Shadow Lord",
+  "act": 3,
+  "chapter": 15,
+  "type": "boss",
+  "playtime_estimate_minutes": 7,
+  "objective": "Defeat the Shadow Lord, master of the underground",
+  "background_color": [0.04, 0.02, 0.08],
+  "theme": "dark_fortress",
+  "enemies": [
+    {
+      "type": "wolf",
+      "count": 2,
+      "positions": [
+        {"x": 150, "y": 120},
+        {"x": 490, "y": 120}
+      ],
+      "stats": {"health": 35, "speed": 135, "damage": 10}
+    },
+    {
+      "type": "assassin",
+      "count": 1,
+      "positions": [
+        {"x": 320, "y": 80}
+      ],
+      "stats": {"health": 55, "speed": 150, "damage": 22}
+    },
+    {
+      "type": "shadow_lord",
+      "count": 1,
+      "positions": [{"x": 320, "y": 160}],
+      "stats": {"health": 280, "speed": 80, "damage": 30, "phase2_threshold": 0.4}
+    }
+  ],
+  "dialogue": [
+    {
+      "speaker": "SHADOW_LORD",
+      "text": "You've carved a path through my forces. Impressive... for a mortal.",
+      "trigger": "start"
+    },
+    {
+      "speaker": "JIN",
+      "text": "Your Fang ends here. The city will be free.",
+      "trigger": "start"
+    },
+    {
+      "speaker": "SHADOW_LORD",
+      "text": "Enough games! The shadows OBEY me!",
+      "trigger": "mid_combat"
+    },
+    {
+      "speaker": "JIN",
+      "text": "The Shadow Lord falls. The underground is ours. But the Fang still holds the city above.",
+      "trigger": "objective_complete"
+    }
+  ],
+  "rewards": {
+    "xp": 350,
+    "unlock_chapter": "act04_ch016",
+    "gold": 120,
+    "unlock_weapon": "shadow_blade",
+    "unlock_skill": "battle_cry",
+    "act3_complete": true
+  },
+  "next_chapter": "act04_ch016",
+  "is_unlocked": false
+}

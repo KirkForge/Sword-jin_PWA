@@ -1,4 +1,5 @@
 extends CharacterBody2D
+var enemy_type := "ghost"
 ## Ghost — spectral enemy that phases between tangible/intangible states.
 ## Physical attacks have a chance to miss. Slow movement, high damage.
 

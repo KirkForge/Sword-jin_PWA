@@ -1,6 +1,6 @@
 extends Control
 # TitleScreen — Entry point: start, continue, chapter select
-# ChapterManager is embedded; its Start button already changes scene to main.tscn
+# v0.71 — Shows daily streak, rested XP, progress stats
 
 @onready var start_btn = $CenterContainer/VBoxContainer/StartButton
 @onready var continue_btn = $CenterContainer/VBoxContainer/ContinueButton
@@ -17,6 +17,15 @@ func _ready():
 	if GameState.completed_chapters.is_empty():
 		continue_btn.disabled = true
 		continue_btn.modulate = Color.GRAY
+	
+	# Show daily streak and rested XP status
+	_print_login_status()
+
+func _print_login_status():
+	if GameState.daily_streak > 1:
+		print("📅 Daily Streak: %d days" % GameState.daily_streak)
+	if GameState.rested_chapters_remaining > 0:
+		print("🔥 Rested XP: 2× bonus active for %d chapters! (Pool: %d XP)" % [GameState.rested_chapters_remaining, GameState.rested_xp_pool])
 
 func _on_start_pressed():
 	ChapterDatabase.set_current_chapter("act01_ch001")

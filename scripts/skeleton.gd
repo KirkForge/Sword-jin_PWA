@@ -1,4 +1,5 @@
 extends CharacterBody2D
+var enemy_type := "skeleton"
 
 var damage_number_scene = preload("res://scenes/ui/damage_number.tscn")
 

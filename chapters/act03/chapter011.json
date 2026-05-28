@@ -1,0 +1,51 @@
+{
+  "chapter_id": "act03_ch011",
+  "title": "The City Below",
+  "act": 3,
+  "chapter": 11,
+  "type": "combat",
+  "playtime_estimate_minutes": 3,
+  "objective": "Navigate the underground passages beneath the capital",
+  "background_color": [0.08, 0.06, 0.14],
+  "theme": "cavern",
+  "enemies": [
+    {
+      "type": "ghost",
+      "count": 3,
+      "positions": [
+        {"x": 180, "y": 140},
+        {"x": 420, "y": 100},
+        {"x": 300, "y": 240}
+      ],
+      "stats": {"health": 40, "speed": 65, "damage": 18}
+    },
+    {
+      "type": "bandit",
+      "count": 2,
+      "positions": [
+        {"x": 500, "y": 180},
+        {"x": 150, "y": 260}
+      ],
+      "stats": {"health": 55, "speed": 95, "damage": 14}
+    }
+  ],
+  "dialogue": [
+    {
+      "speaker": "JIN",
+      "text": "Beneath the capital... the Crimson Fang has been hiding something down here.",
+      "trigger": "start"
+    },
+    {
+      "speaker": "JIN",
+      "text": "Ghosts in the tunnels. The Fang's dark work runs deep.",
+      "trigger": "objective_complete"
+    }
+  ],
+  "rewards": {
+    "xp": 90,
+    "unlock_chapter": "act03_ch012",
+    "gold": 20
+  },
+  "next_chapter": "act03_ch012",
+  "is_unlocked": false
+}

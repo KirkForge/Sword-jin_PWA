@@ -1,0 +1,50 @@
+{
+  "chapter_id": "act03_ch013",
+  "title": "The Poisoned Well",
+  "act": 3,
+  "chapter": 13,
+  "type": "combat",
+  "playtime_estimate_minutes": 4,
+  "objective": "Clear the corrupted water source guarded by assassins",
+  "background_color": [0.05, 0.08, 0.12],
+  "theme": "cavern",
+  "enemies": [
+    {
+      "type": "assassin",
+      "count": 2,
+      "positions": [
+        {"x": 200, "y": 120},
+        {"x": 480, "y": 200}
+      ],
+      "stats": {"health": 50, "speed": 145, "damage": 20}
+    },
+    {
+      "type": "dark_mage",
+      "count": 2,
+      "positions": [
+        {"x": 350, "y": 100},
+        {"x": 150, "y": 260}
+      ],
+      "stats": {"health": 55, "speed": 55, "damage": 24}
+    }
+  ],
+  "dialogue": [
+    {
+      "speaker": "JIN",
+      "text": "The water glows green. The Fang has been poisoning the city from below.",
+      "trigger": "start"
+    },
+    {
+      "speaker": "JIN",
+      "text": "The well is cleansed. But the Fang's reach goes deeper still.",
+      "trigger": "objective_complete"
+    }
+  ],
+  "rewards": {
+    "xp": 140,
+    "unlock_chapter": "act03_ch014",
+    "gold": 35
+  },
+  "next_chapter": "act03_ch014",
+  "is_unlocked": false
+}

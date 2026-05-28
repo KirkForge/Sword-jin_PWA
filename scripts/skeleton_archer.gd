@@ -1,4 +1,5 @@
 extends CharacterBody2D
+var enemy_type := "skeleton_archer"
 # SkeletonArcher — Ranged enemy: keeps distance, fires projectiles
 
 var damage_number_scene = preload("res://scenes/ui/damage_number.tscn")

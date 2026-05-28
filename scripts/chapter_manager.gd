@@ -83,9 +83,21 @@ func _refresh_chapters():
 		var unlocked = ch.get("is_unlocked", false)
 		var completed = GameState.completed_chapters.has(id)
 		
+		# Star rating display
+		var stars_data = GameState.chapter_stars.get(id, {})
+		var stars = stars_data.get("stars", 0) if stars_data is Dictionary else 0
+		var star_str = ""
+		for i in range(3):
+			star_str += "⭐" if i < stars else "☆"
+		
 		var btn = Button.new()
-		btn.text = "%d. %s" % [ch.get("chapter", 0), title]
-		btn.custom_minimum_size = Vector2(160, 40)
+		if completed and stars > 0:
+			btn.text = "%d. %s %s" % [ch.get("chapter", 0), title, star_str]
+		elif completed:
+			btn.text = "✓ %d. %s" % [ch.get("chapter", 0), title]
+		else:
+			btn.text = "%d. %s" % [ch.get("chapter", 0), title]
+		btn.custom_minimum_size = Vector2(200, 40)
 		btn.disabled = not unlocked
 		
 		if completed:
@@ -103,7 +115,22 @@ func _on_chapter_selected(ch: Dictionary):
 	var title = ch.get("title", "")
 	var obj = ch.get("objective", "")
 	var est = ch.get("playtime_estimate_minutes", 0)
-	info_label.text = "🗡 %s\n📜 %s\n⏱ %d min" % [title, obj, est]
+	
+	# Show star rating for completed chapters
+	var id = ch.get("chapter_id", "")
+	var stars_data = GameState.chapter_stars.get(id, {})
+	var stars = stars_data.get("stars", 0) if stars_data is Dictionary else 0
+	var best_time = stars_data.get("time", 0) if stars_data is Dictionary else 0
+	
+	var star_str = ""
+	for i in range(3):
+		star_str += "⭐" if i < stars else "☆"
+	
+	var info = "🗡 %s\n📜 %s\n⏱ %d min" % [title, obj, est]
+	if stars > 0:
+		info += "\n%s Best: %.0fs" % [star_str, best_time]
+	
+	info_label.text = info
 	start_button.disabled = false
 
 func _on_start_button_pressed():
@@ -121,8 +148,10 @@ func _on_back_button_pressed():
 func _update_progress():
 	var total = ChapterDatabase.chapters.size()
 	var done = GameState.completed_chapters.size()
+	var total_stars = GameState.get_total_stars()
+	var max_stars = GameState.get_max_possible_stars()
 	progress_bar.value = (float(done) / float(total)) * 100.0 if total > 0 else 0.0
-	progress_bar.tooltip_text = "%d / %d chapters" % [done, total]
+	progress_bar.tooltip_text = "%d / %d chapters | ⭐ %d / %d stars" % [done, total, total_stars, max_stars]
 
 func _on_continue_button_pressed():
 	# Load most recent unlocked chapter
