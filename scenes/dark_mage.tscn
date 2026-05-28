@@ -15,17 +15,17 @@ radius = 400.0
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_1"]
 animations = [{
-"frames": [ExtResource("res://assets/art/enemies/skeleton_idle.png")],
+"frames": [ExtResource("res://assets/art/enemies/dark_mage_idle.png")],
 "loop": true,
 "name": &"idle",
 "speed": 5.0
 }, {
-"frames": [ExtResource("res://assets/art/enemies/skeleton_walk.png")],
+"frames": [ExtResource("res://assets/art/enemies/dark_mage_walk.png")],
 "loop": true,
 "name": &"walk",
 "speed": 8.0
 }, {
-"frames": [ExtResource("res://assets/art/enemies/skeleton_attack.png")],
+"frames": [ExtResource("res://assets/art/enemies/dark_mage_attack.png")],
 "loop": false,
 "name": &"attack",
 "speed": 8.0

@@ -306,7 +306,7 @@ func _finish_chapter_complete():
 	var stars = GameState.chapter_stars.get(chapter_id, {}).get("stars", 1) if GameState.chapter_stars.get(chapter_id, {}) is Dictionary else 1
 	
 	# Loot roll
-	var loot = GameState.roll_loot(is_boss = chapter_data.get("boss", false))
+	var loot = GameState.roll_loot(is_boss = chapter_data.get("type", "") == "boss")
 	gold_gained += loot["gold"]
 	
 	# Show victory screen instead of instant reload

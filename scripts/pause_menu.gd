@@ -10,8 +10,10 @@ var bg: ColorRect
 var vbox: VBoxContainer
 var resume_btn: Button
 var restart_btn: Button
+var stats_btn: Button
 var mute_btn: Button
 var quit_btn: Button
+var stats_screen: CanvasLayer = null
 
 # Called by parent scene
 func setup(parent: Node):
@@ -68,6 +70,10 @@ func _build_ui():
 	restart_btn = _make_btn("↻  Restart Chapter", "_on_restart")
 	vbox.add_child(restart_btn)
 	
+	# Stats
+	stats_btn = _make_btn("📊  Stats", "_on_stats")
+	vbox.add_child(stats_btn)
+	
 	# Mute toggle
 	mute_btn = _make_btn("🔇  Mute", "_on_mute")
 	vbox.add_child(mute_btn)
@@ -121,6 +127,21 @@ func _on_restart():
 	Engine.time_scale = 1
 	AudioManager.play_sfx("ui_click")
 	get_tree().reload_current_scene()
+
+func _on_stats():
+	AudioManager.play_sfx("ui_click")
+	if not stats_screen:
+		var stats_scene = load("res://scenes/ui/stats_screen.tscn")
+		stats_screen = stats_scene.instantiate()
+		get_tree().root.add_child(stats_screen)
+		stats_screen.back_pressed.connect(_on_stats_back)
+	stats_screen.show_stats()
+
+func _on_stats_back():
+	# Stats screen hides itself and unpauses separately
+	# We need to re-pause since stats unpauses
+	if is_paused:
+		Engine.time_scale = 0
 
 func _on_mute():
 	AudioManager.set_volume(0.0 if AudioManager.master_volume > 0.0 else 0.8)
