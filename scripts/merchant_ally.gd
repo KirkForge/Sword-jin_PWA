@@ -61,6 +61,6 @@ func _show_dialogue(text: String, duration: float):
 func _on_dialogue_timer_timeout():
 	dialogue_label.visible = false
 
-func take_damage(amount: int):
+func take_damage(amount: int, is_critical := false):
 	# Merchant is invulnerable
 	_show_dialogue("I'm not a fighter!", 1.0)

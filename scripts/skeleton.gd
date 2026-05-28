@@ -99,30 +99,36 @@ func _end_attack():
 	velocity = Vector2.ZERO
 	sprite.play("idle")
 
-func take_damage(amount: int):
+func take_damage(amount: int, is_critical := false):
 	if is_dead:
 		return
 	
 	health -= amount
 	_update_label()
-	show_damage_number(amount)
+	show_damage_number(amount, is_critical)
 	
 	AudioManager.play_random_pitch("sword_hit", 0.9, 1.1)
 	
-	# Flash red
-	modulate = Color.RED
-	await get_tree().create_timer(0.1).timeout
+	# Hit flash — white on crit, red on normal
+	if is_critical:
+		modulate = Color.WHITE
+		await get_tree().create_timer(0.08).timeout
+		modulate = Color.RED
+		await get_tree().create_timer(0.1).timeout
+	else:
+		modulate = Color.RED
+		await get_tree().create_timer(0.1).timeout
 	if not is_dead:
 		modulate = Color.WHITE
 	
 	if health <= 0:
 		_die()
 
-func show_damage_number(amount: int):
+func show_damage_number(amount: int, is_critical := false):
 	var dn = damage_number_scene.instantiate() as Node2D
 	dn.global_position = global_position + Vector2(0, -24)
 	get_tree().current_scene.add_child(dn)
-	dn.setup(amount)
+	dn.setup(amount, Color.RED, is_critical)
 
 func _update_label():
 	if label:

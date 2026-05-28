@@ -11,7 +11,7 @@ func _ready():
 	health = max_health
 	_update_label()
 
-func take_damage(amount: int):
+func take_damage(amount: int, is_critical := false):
 	health -= amount
 	_update_label()
 	

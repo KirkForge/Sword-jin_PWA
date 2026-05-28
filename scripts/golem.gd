@@ -110,16 +110,16 @@ func _end_attack():
 	velocity = Vector2.ZERO
 	sprite.play("idle")
 
-func show_damage_number(amount: int, is_heal := false):
+func show_damage_number(amount: int, is_heal := false, is_critical := false):
 	var dn = damage_number_scene.instantiate() as Node2D
 	dn.global_position = global_position + Vector2(0, -24)
 	get_tree().current_scene.add_child(dn)
 	if is_heal:
 		dn.setup_heal(amount)
 	else:
-		dn.setup(amount)
+		dn.setup(amount, Color.RED, is_critical)
 
-func take_damage(amount: int):
+func take_damage(amount: int, is_critical := false):
 	if is_dead:
 		return
 	
@@ -129,12 +129,17 @@ func take_damage(amount: int):
 	stun_timer = STUN_DURATION  # Brief stun on hit
 	
 	_update_label()
-	show_damage_number(actual_damage)
+	show_damage_number(actual_damage, false, is_critical)
 	AudioManager.play_random_pitch("shield_block", 0.4, 0.6)
 	
+	# Hit flash — white on crit, brown on normal
+	if is_critical:
+		modulate = Color.WHITE
+		await get_tree().create_timer(0.08).timeout
 	modulate = Color(0.7, 0.5, 0.3)
 	await get_tree().create_timer(0.15).timeout
 	if not is_dead:
+		modulate = Color.WHITE
 		modulate = Color.WHITE
 	
 	if health <= 0:
