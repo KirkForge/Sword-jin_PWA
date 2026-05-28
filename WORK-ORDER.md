@@ -6,8 +6,8 @@
 
 **Repo:** `git@github.com:KirkForge/Sword-jin_PWA.git`
 **Branch:** `main`
-**Current version:** v0.72 (Daily Challenge system)
-**Codebase:** ~5,100 lines GDScript across 41 scripts, 32 scenes, 20 chapters across 4 acts
+**Current version:** v0.73a (Critical hits + hit flash + XP popups)
+**Codebase:** ~6,300 lines GDScript across 41 scripts, 32 scenes, 20 chapters across 4 acts
 
 ---
 
@@ -23,6 +23,9 @@
 | 8 weapons | ✅ | broken_sword → shadow_blade, unlock via chapter rewards |
 | 4 skills | ✅ | whirlwind_slash, shadow_step, battle_cry, dodge_roll |
 | Loot rarity | ✅ | Common/uncommon/rare/legendary with variable ratio weights, bosses boosted |
+| Critical hits | ✅ | 10% chance, 1.5× damage, gold text + "!" + scale punch, distinct SFX |
+| Hit flash | ✅ | White flash on crit, red on normal, brown on golem, purple on dark mage |
+| XP popups | ✅ | setup_xp() in DamageNumber, blue text, smaller font, float up |
 | Bestiary | ✅ | 10 enemy types, kill tracking, lore unlocks at 10/50/100 kills |
 | Achievements | ✅ | 16 auto-awarded, popup toast on unlock |
 | Chapter stars | ✅ | 1-3 stars per chapter (completion, speed, no-damage) |
