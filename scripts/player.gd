@@ -2,10 +2,6 @@ extends CharacterBody2D
 # Player — Jin the Swordmaster
 # v0.70 — charged heavy attack, poison, skills (whirlwind/shadow/battle_cry)
 
-# Critical hit chance
-const CRIT_CHANCE := 0.10   # 10% chance
-const CRIT_MULT := 1.5     # 1.5× damage
-
 var damage_number_scene = preload("res://scenes/ui/damage_number.tscn")
 
 @export var speed := 200.0
@@ -207,14 +203,7 @@ func take_damage(amount: int):
 	if is_dead or is_dodging:
 		return
 	
-	# Apply daily challenge Glass Cannon modifier
-	if GameState.daily_modifiers.has("mods"):
-		for mod in GameState.daily_modifiers.mods:
-			if mod.get("player_damage_mult", 1.0) > 1.0:
-				amount = int(float(amount) * mod.player_damage_mult)
-	
 	health -= amount
-	GameState.chapter_damage_taken += amount  # Track for star rating
 	_update_label()
 	show_damage_number(amount)
 	
@@ -227,10 +216,6 @@ func take_damage(amount: int):
 	
 	AudioManager.play_sfx("player_hurt")
 	
-	# Hit flash — white on heavy damage, red on normal
-	if amount >= 15:
-		modulate = Color.WHITE
-		await get_tree().create_timer(0.08).timeout
 	modulate = Color.RED
 	await get_tree().create_timer(0.1).timeout
 	if not is_dead:
@@ -270,22 +255,14 @@ func heal(amount: int):
 func merchant_heal(amount: int):
 	heal(amount)
 
-func show_damage_number(amount: int, is_heal := false, is_critical := false):
+func show_damage_number(amount: int, is_heal := false):
 	var dn = damage_number_scene.instantiate() as Node2D
 	dn.global_position = global_position + Vector2(0, -24)
 	get_tree().current_scene.add_child(dn)
 	if is_heal:
 		dn.setup_heal(amount)
-	elif is_critical:
-		dn.setup(amount, Color.GOLD, true)
 	else:
 		dn.setup(amount)
-
-func show_xp_number(amount: int):
-	var dn = damage_number_scene.instantiate() as Node2D
-	dn.global_position = global_position + Vector2(8, -16)
-	get_tree().current_scene.add_child(dn)
-	dn.setup_xp(amount)
 
 func _die():
 	is_dead = true
@@ -400,12 +377,9 @@ func _use_whirlwind():
 			continue
 		var dist = global_position.distance_to(body.global_position)
 		if dist <= WHIRLWIND_RADIUS:
-			var is_crit := randf() < CRIT_CHANCE
 			var dmg = int(attack_damage * GameState.get_skill_stats("whirlwind_slash").get("damage_mult", 1.5) * GameState.damage_buff_mult)
-			if is_crit:
-				dmg = int(dmg * CRIT_MULT)
 			if body.has_method("take_damage"):
-				body.take_damage(dmg, is_crit)
+				body.take_damage(dmg)
 				HitStop.trigger_light()
 	
 	var tween = create_tween()
@@ -448,12 +422,9 @@ func _use_shadow_step():
 		modulate.a = 1.0
 		
 		# Stab
-		var is_crit := randf() < CRIT_CHANCE
 		var stab_dmg = int(GameState.get_skill_stats("shadow_step").get("damage", 10) * GameState.damage_buff_mult)
-		if is_crit:
-			stab_dmg = int(stab_dmg * CRIT_MULT)
 		if best_target.has_method("take_damage"):
-			best_target.take_damage(stab_dmg, is_crit)
+			best_target.take_damage(stab_dmg)
 		AudioManager.play_sfx("sword_hit")
 		HitStop.trigger_heavy()
 		print("SHADOW STEP! Behind %s → %d DMG" % [best_target.name, stab_dmg])
@@ -480,20 +451,10 @@ func _use_battle_cry():
 
 func _on_attack_hitbox_body_entered(body):
 	if body.has_method("take_damage"):
-		# Roll for critical hit
-		var is_crit := randf() < CRIT_CHANCE
-		var dmg := attack_damage
-		if is_crit:
-			dmg = int(dmg * CRIT_MULT)
-		dmg = int(dmg * GameState.damage_buff_mult)
-		body.take_damage(dmg, is_crit)
-		if is_crit:
-			AudioManager.play_random_pitch("captain_charge", 1.2, 1.4)
-			HitStop.trigger_heavy()
-			ScreenShake.shake(4.0, 0.25)
-		else:
-			AudioManager.play_random_pitch("sword_hit", 0.9, 1.1)
-			HitStop.trigger_light()
+		var dmg = int(attack_damage * GameState.damage_buff_mult)
+		body.take_damage(dmg)
+		AudioManager.play_random_pitch("sword_hit", 0.9, 1.1)
+		HitStop.trigger_light()
 
 func get_current_health() -> int:
 	return health

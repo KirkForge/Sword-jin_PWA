@@ -1,6 +1,6 @@
 extends CanvasLayer
 # VictoryScreen — Chapter complete overlay
-# v0.71 — Stars, loot drops, rested XP indicator
+# v0.66: Shows XP gain + gold earned + weapon unlock with Continue / Chapter Select buttons
 
 signal next_chapter_pressed
 signal chapter_select_pressed
@@ -17,8 +17,6 @@ signal title_screen_pressed
 @onready var animation = $AnimationPlayer
 
 var _has_next_chapter: bool = false
-var _stars: int = 1
-var _loot: Dictionary = {}
 
 func _ready():
 	visible = false
@@ -28,43 +26,20 @@ func _ready():
 	title_btn.pressed.connect(_on_title)
 	title_btn.visible = false  # Hidden by default, shown for final chapter
 
-func show_victory(chapter_title: String, xp_gained: int, gold_gained: int = 0, reward_weapon: String = "", reward_skill: String = "", stars: int = 1, loot: Dictionary = {}):
-	_stars = stars
-	_loot = loot
-	
+func show_victory(chapter_title: String, xp_gained: int, gold_gained: int = 0, reward_weapon: String = "", reward_skill: String = ""):
 	# Pause the game
 	get_tree().paused = true
 	
 	# Title
 	title_label.text = "VICTORY: " + chapter_title
 	
-	# Stars display
-	var star_str = ""
-	for i in range(3):
-		if i < stars:
-			star_str += "⭐"
-		else:
-			star_str += "☆"
+	# XP line
+	xp_label.text = "XP Gained: " + str(xp_gained)
 	
-	# XP line (with rested bonus indicator)
-	var xp_mult = GameState.get_xp_multiplier()
-	if xp_mult > 1.0:
-		xp_label.text = "🔥 XP Gained: %d (×%.0f Rested!)" % [xp_gained, xp_mult]
-		xp_label.add_theme_color_override("font_color", Color(1.0, 0.6, 0.0))  # Orange
-	else:
-		xp_label.text = "XP Gained: " + str(xp_gained)
-	
-	# Gold line + loot tier
-	var gold_total = gold_gained + loot.get("gold", 0)
-	gold_label.text = "Gold Earned: " + str(gold_total)
+	# Gold line (yellow #FFD700)
+	gold_label.text = "Gold Earned: " + str(gold_gained)
 	gold_label.add_theme_color_override("font_color", Color(1.0, 0.843, 0.0))  # #FFD700
-	
-	# Loot tier display
-	var loot_parts: Array[String] = []
-	if loot.has("tier") and loot["tier"] != "common":
-		var tier_colors = {"uncommon": "#1eff00", "rare": "#0070dd", "legendary": "#ff8000"}
-		var color = tier_colors.get(loot["tier"], "#ffffff")
-		loot_parts.append("[color=%s]%s loot![/color]" % [color, loot["tier"].capitalize()])
+	gold_label.visible = true
 	
 	# Reward line
 	var reward_parts: Array[String] = []
@@ -73,12 +48,11 @@ func show_victory(chapter_title: String, xp_gained: int, gold_gained: int = 0, r
 	if not reward_skill.is_empty():
 		reward_parts.append("Skill: " + _format_name(reward_skill))
 	
-	var display_parts = reward_parts + loot_parts
-	if display_parts.is_empty():
-		reward_label.text = star_str
-		reward_label.visible = true
+	if reward_parts.is_empty():
+		reward_label.text = ""
+		reward_label.visible = false
 	else:
-		reward_label.text = star_str + "\nUnlocked: " + " | ".join(display_parts)
+		reward_label.text = "Unlocked: " + " | ".join(reward_parts)
 		reward_label.visible = true
 	
 	# Show / hide continue based on whether there's a next chapter
@@ -86,7 +60,7 @@ func show_victory(chapter_title: String, xp_gained: int, gold_gained: int = 0, r
 	
 	# Act Complete state for final chapter
 	if not _has_next_chapter:
-		title_label.text = "ACT COMPLETE"
+		title_label.text = "ACT 1 COMPLETE"
 		title_label.add_theme_color_override("font_color", Color(1.0, 0.843, 0.0))  # Gold #FFD700
 		title_btn.visible = true
 	else:

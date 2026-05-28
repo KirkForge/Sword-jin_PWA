@@ -1,5 +1,5 @@
 // Swordjin PWA Service Worker v0.70
-const CACHE_NAME = 'swordjin-v0-72';
+const CACHE_NAME = 'swordjin-v0-70';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',

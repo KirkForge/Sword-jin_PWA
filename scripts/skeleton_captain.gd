@@ -1,5 +1,4 @@
 extends CharacterBody2D
-var enemy_type := "skeleton_captain"
 # SkeletonCaptain — Boss variant with shield + charge attack
 # Inherits base skeleton behavior, adds captain mechanics
 
@@ -134,16 +133,16 @@ func _end_attack():
 	velocity = Vector2.ZERO
 	sprite.play("idle")
 
-func show_damage_number(amount: int, is_heal := false, is_critical := false):
+func show_damage_number(amount: int, is_heal := false):
 	var dn = damage_number_scene.instantiate() as Node2D
 	dn.global_position = global_position + Vector2(0, -24)
 	get_tree().current_scene.add_child(dn)
 	if is_heal:
 		dn.setup_heal(amount)
 	else:
-		dn.setup(amount, Color.RED, is_critical)
+		dn.setup(amount)
 
-func take_damage(amount: int, is_critical := false):
+func take_damage(amount: int):
 	if is_dead:
 		return
 	
@@ -162,15 +161,12 @@ func take_damage(amount: int, is_critical := false):
 		print("Captain blocked!")
 		return
 	
-	show_damage_number(amount, false, is_critical)
+	show_damage_number(amount)
 	
 	health -= amount
 	_update_label()
 	
-	# Hit flash — white on crit, red on normal
-	if is_critical:
-		modulate = Color.WHITE
-		await get_tree().create_timer(0.08).timeout
+	# Flash red
 	modulate = Color.RED
 	await get_tree().create_timer(0.1).timeout
 	if not is_dead:

@@ -1,5 +1,4 @@
 extends CharacterBody2D
-var enemy_type := "dummy"
 
 @export var max_health := 50
 
@@ -11,7 +10,7 @@ func _ready():
 	health = max_health
 	_update_label()
 
-func take_damage(amount: int, is_critical := false):
+func take_damage(amount: int):
 	health -= amount
 	_update_label()
 	

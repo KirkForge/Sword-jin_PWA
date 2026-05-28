@@ -62,23 +62,6 @@ func _ready():
 	$Objective.text = "Objective: " + chapter_data.get("objective", "Defeat enemies!")
 	$LevelLabel.text = chapter_data.get("title", "Level 1")
 	
-	# Show daily challenge banner if active
-	if not GameState.daily_modifiers.is_empty():
-		$LevelLabel.text = "⚔️ DAILY CHALLENGE ⚔️"
-		var mods = GameState.daily_modifiers.get("mods", [])
-		var mod_names = []
-		for mod in mods:
-			mod_names.append(mod.get("icon", "?") + " " + mod.get("name", ""))
-		$Objective.text = "Modifiers: " + " | ".join(mod_names)
-	
-	# Show rested XP indicator if active
-	if GameState.rested_chapters_remaining > 0:
-		$RestedLabel.text = "🔥 2× XP (%d chapters left)" % GameState.rested_chapters_remaining
-		$RestedLabel.visible = true
-	else:
-		$RestedLabel.text = ""
-		$RestedLabel.visible = false
-	
 	# Background handled by ArenaBuilder tilemap
 	# (ColorRect removed by arena builder)
 	
@@ -121,27 +104,13 @@ func _setup_level():
 	
 	# Spawn from chapter data
 	var enemies = chapter_data.get("enemies", [])
-	var swarm_active = false
-	var count_mult = 1.0
-	if not GameState.daily_modifiers.is_empty():
-		for mod in GameState.daily_modifiers.get("mods", []):
-			if mod.get("count_mult", 1.0) > 1.0:
-				count_mult = mod.count_mult
-				swarm_active = true
-	
 	for group in enemies:
 		var enemy_type = group.get("type", "skeleton")
 		var positions = group.get("positions", [])
 		var stats = group.get("stats", {})
 		
-		# Swarm: spawn extra copies at random positions
-		var spawn_count = int(positions.size() * count_mult)
-		for i in range(spawn_count):
-			var pos_data = positions[i % positions.size()]
+		for pos_data in positions:
 			var pos = Vector2(pos_data.x, pos_data.y)
-			# Add slight random offset for swarm duplicates
-			if i >= positions.size():
-				pos += Vector2(randf_range(-30, 30), randf_range(-30, 30))
 			_spawn_enemy(enemy_type, pos, stats)
 	
 	# Spawn allies
@@ -185,48 +154,6 @@ func _spawn_enemy(type: String, pos: Vector2, stats: Dictionary):
 		inst = captain_scene.instantiate()
 	elif type == "skeleton_archer":
 		inst = archer_scene.instantiate()
-	elif type == "wolf":
-		var wolf_scene = load("res://scenes/wolf.tscn")
-		if wolf_scene:
-			inst = wolf_scene.instantiate()
-		else:
-			inst = skeleton_scene.instantiate()
-	elif type == "dark_mage":
-		var mage_scene = load("res://scenes/dark_mage.tscn")
-		if mage_scene:
-			inst = mage_scene.instantiate()
-		else:
-			inst = skeleton_scene.instantiate()
-	elif type == "shadow_lord":
-		var boss_scene = load("res://scenes/shadow_lord.tscn")
-		if boss_scene:
-			inst = boss_scene.instantiate()
-		else:
-			inst = captain_scene.instantiate()
-	elif type == "ghost":
-		var ghost_scene = load("res://scenes/ghost.tscn")
-		if ghost_scene:
-			inst = ghost_scene.instantiate()
-		else:
-			inst = skeleton_scene.instantiate()
-	elif type == "bandit":
-		var bandit_scene = load("res://scenes/bandit.tscn")
-		if bandit_scene:
-			inst = bandit_scene.instantiate()
-		else:
-			inst = skeleton_scene.instantiate()
-	elif type == "assassin":
-		var assassin_scene = load("res://scenes/assassin.tscn")
-		if assassin_scene:
-			inst = assassin_scene.instantiate()
-		else:
-			inst = skeleton_scene.instantiate()
-	elif type == "golem":
-		var golem_scene = load("res://scenes/golem.tscn")
-		if golem_scene:
-			inst = golem_scene.instantiate()
-		else:
-			inst = captain_scene.instantiate()
 	else:
 		inst = skeleton_scene.instantiate()
 		
@@ -243,19 +170,6 @@ func _spawn_enemy(type: String, pos: Vector2, stats: Dictionary):
 		inst.attack_damage = stats.damage
 	
 	inst.add_to_group("enemy")
-	
-	# Apply daily challenge modifiers
-	if not GameState.daily_modifiers.is_empty():
-		var mods = GameState.daily_modifiers.get("mods", [])
-		for mod in mods:
-			if mod.get("speed_mult", 1.0) != 1.0 and inst.get("speed") != null:
-				inst.speed *= mod.speed_mult
-			if mod.get("damage_mult", 1.0) != 1.0 and inst.get("attack_damage") != null:
-				inst.attack_damage = int(float(inst.attack_damage) * mod.damage_mult)
-			if mod.get("enemy_damage_mult", 1.0) != 1.0 and inst.get("attack_damage") != null:
-				inst.attack_damage = int(float(inst.attack_damage) * mod.enemy_damage_mult)
-			if mod.get("enemy_lifesteal", false):
-				inst.set_meta("lifesteal", true)
 	
 	# Connect death signal
 	if inst.has_method("_die"):
@@ -316,17 +230,8 @@ func _finish_chapter_complete():
 	if not allies.is_empty():
 		player.heal(25)
 	
-	# Record all enemy kills to bestiary
-	for child in get_children():
-		if child.is_in_group("enemy") and child.is_dead:
-			var enemy_type = child.enemy_type if child.get("enemy_type") else "skeleton"
-			GameState.record_kill(enemy_type)
-	
 	print("Chapter complete! Transitioning...")
 	AudioManager.play_sfx("level_complete")
-	
-	# Check if this is a daily challenge
-	var is_daily = not GameState.daily_modifiers.is_empty()
 	
 	# Capture rewards BEFORE completing (GameState clears them after)
 	var rewards = ChapterDatabase.get_current_chapter().get("rewards", {})
@@ -335,28 +240,7 @@ func _finish_chapter_complete():
 	var reward_weapon: String = rewards.get("unlock_weapon", "")
 	var reward_skill: String = rewards.get("unlock_skill", "")
 	
-	# Add daily challenge bonus rewards
-	if is_daily:
-		var challenge = GameState.get_daily_challenge()
-		xp_gained += challenge.get("reward_xp", 75)
-		gold_gained += challenge.get("reward_gold", 30)
-	
-	# Calculate chapter time for star rating
-	var chapter_time = Time.get_ticks_msec() / 1000.0 - GameState.chapter_start_time if GameState.chapter_start_time > 0 else 0.0
-	
-	if is_daily:
-		GameState.complete_daily_challenge(chapter_time, GameState.chapter_damage_taken, GameState.chapter_kills)
-		GameState.daily_modifiers = {}  # Clear modifiers after completion
-	else:
-		GameState.complete_current_chapter()
-	
-	# Get star rating
-	var chapter_id = chapter_data.get("chapter_id", "")
-	var stars = GameState.chapter_stars.get(chapter_id, {}).get("stars", 1) if GameState.chapter_stars.get(chapter_id, {}) is Dictionary else 1
-	
-	# Loot roll
-	var loot = GameState.roll_loot(is_boss = chapter_data.get("type", "") == "boss")
-	gold_gained += loot["gold"]
+	GameState.complete_current_chapter()
 	
 	# Show victory screen instead of instant reload
 	victory_screen = victory_screen_scene.instantiate()
@@ -370,9 +254,7 @@ func _finish_chapter_complete():
 		xp_gained,
 		gold_gained,
 		reward_weapon,
-		reward_skill,
-		stars,
-		loot
+		reward_skill
 	)
 	
 	victory_screen.next_chapter_pressed.connect(_on_victory_next)

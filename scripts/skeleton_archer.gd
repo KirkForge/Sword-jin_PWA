@@ -1,5 +1,4 @@
 extends CharacterBody2D
-var enemy_type := "skeleton_archer"
 # SkeletonArcher — Ranged enemy: keeps distance, fires projectiles
 
 var damage_number_scene = preload("res://scenes/ui/damage_number.tscn")
@@ -129,31 +128,29 @@ func _fire_arrow():
 	
 	AudioManager.play_sfx("bow_fire")
 
-func take_damage(amount: int, is_critical := false):
+func take_damage(amount: int):
 	if is_dead:
 		return
 	
-	show_damage_number(amount, is_critical)
+	show_damage_number(amount)
 	
 	health -= amount
 	_update_label()
 	
 	# Flash red
-	# Hit flash — white on crit, red on normal
-	if is_critical:
-		modulate = Color.WHITE
-		await get_tree().create_timer(0.08).timeout
 	modulate = Color.RED
 	await get_tree().create_timer(0.1).timeout
 	if not is_dead:
-		modulate = Color.WHITE	if health <= 0:
+		modulate = Color.WHITE
+	
+	if health <= 0:
 		_die()
 
-func show_damage_number(amount: int, is_critical := false):
+func show_damage_number(amount: int):
 	var dn = damage_number_scene.instantiate() as Node2D
 	dn.global_position = global_position + Vector2(0, -24)
 	get_tree().current_scene.add_child(dn)
-	dn.setup(amount, Color.RED, is_critical)
+	dn.setup(amount)
 
 func _update_label():
 	if label:
