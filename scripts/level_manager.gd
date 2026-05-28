@@ -162,6 +162,48 @@ func _spawn_enemy(type: String, pos: Vector2, stats: Dictionary):
 		inst = captain_scene.instantiate()
 	elif type == "skeleton_archer":
 		inst = archer_scene.instantiate()
+	elif type == "wolf":
+		var wolf_scene = load("res://scenes/wolf.tscn")
+		if wolf_scene:
+			inst = wolf_scene.instantiate()
+		else:
+			inst = skeleton_scene.instantiate()
+	elif type == "dark_mage":
+		var mage_scene = load("res://scenes/dark_mage.tscn")
+		if mage_scene:
+			inst = mage_scene.instantiate()
+		else:
+			inst = skeleton_scene.instantiate()
+	elif type == "shadow_lord":
+		var boss_scene = load("res://scenes/shadow_lord.tscn")
+		if boss_scene:
+			inst = boss_scene.instantiate()
+		else:
+			inst = captain_scene.instantiate()
+	elif type == "ghost":
+		var ghost_scene = load("res://scenes/ghost.tscn")
+		if ghost_scene:
+			inst = ghost_scene.instantiate()
+		else:
+			inst = skeleton_scene.instantiate()
+	elif type == "bandit":
+		var bandit_scene = load("res://scenes/bandit.tscn")
+		if bandit_scene:
+			inst = bandit_scene.instantiate()
+		else:
+			inst = skeleton_scene.instantiate()
+	elif type == "assassin":
+		var assassin_scene = load("res://scenes/assassin.tscn")
+		if assassin_scene:
+			inst = assassin_scene.instantiate()
+		else:
+			inst = skeleton_scene.instantiate()
+	elif type == "golem":
+		var golem_scene = load("res://scenes/golem.tscn")
+		if golem_scene:
+			inst = golem_scene.instantiate()
+		else:
+			inst = captain_scene.instantiate()
 	else:
 		inst = skeleton_scene.instantiate()
 		

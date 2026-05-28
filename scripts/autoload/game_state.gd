@@ -14,6 +14,8 @@ const WEAPON_STATS := {
 	"spirit_edge":     {"damage": 18, "cooldown": 0.35, "description": "Ghost-forged blade. Cuts ethereal and flesh alike."},
 	"crimson_edge":    {"damage": 22, "cooldown": 0.45, "description": "Fang officer's saber. Wickedly fast."},
 	"wardens_halberd": {"damage": 28, "cooldown": 0.60, "description": "Gate Warden's polearm. Devastating reach."},
+	"ghost_forge_blade": {"damage": 32, "cooldown": 0.45, "description": "Forged in spectral fire. Cuts through armor and spirit alike."},
+	"shadow_blade": {"damage": 38, "cooldown": 0.40, "description": "The Shadow Lord's own blade. Darkness itself obeys."},
 }
 
 # ── Skill definitions ──
@@ -61,6 +63,7 @@ const ACHIEVEMENTS := {
 	"act1_complete":    {"name": "Act 1 Complete",     "desc": "Complete Act 1",                    "icon": "🏛️"},
 	"act2_complete":    {"name": "Act 2 Complete",     "desc": "Complete Act 2",                    "icon": "🌑"},
 	"act3_complete":    {"name": "Act 3 Complete",     "desc": "Complete Act 3",                    "icon": "⚔️"},
+	"act4_complete":    {"name": "Act 4 Complete",     "desc": "Complete Act 4 — Reclaim the city", "icon": "👑"},
 	"level_10":         {"name": "Veteran",            "desc": "Reach level 10",                   "icon": "⭐"},
 	"level_25":         {"name": "Legend",             "desc": "Reach level 25",                   "icon": "🌟"},
 	"gold_hoarder":     {"name": "Gold Hoarder",       "desc": "Accumulate 500 gold",              "icon": "💰"},
@@ -511,6 +514,22 @@ func _check_achievements():
 		unlock_achievement("act1_complete")
 	if act2_done:
 		unlock_achievement("act2_complete")
+	
+	# Act 3 completion
+	var act3_done = true
+	for i in range(11, 16):
+		if not completed_chapters.has("act03_ch%03d" % i):
+			act3_done = false
+	if act3_done:
+		unlock_achievement("act3_complete")
+	
+	# Act 4 completion
+	var act4_done = true
+	for i in range(16, 21):
+		if not completed_chapters.has("act04_ch%03d" % i):
+			act4_done = false
+	if act4_done:
+		unlock_achievement("act4_complete")
 
 # ── LOOT: Variable Ratio Reinforcement ──
 

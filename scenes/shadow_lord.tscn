@@ -1,0 +1,69 @@
+[gd_scene load_steps=6 format=3 uid="uid://shadow_lord_boss"]
+
+[ext_resource type="Script" path="res://scripts/shadow_lord.gd" id="1"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_sl_body"]
+radius = 18.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_sl_attack"]
+radius = 30.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_sl_detect"]
+radius = 600.0
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_sl_hitbox"]
+size = Vector2(40, 50)
+
+[node name="ShadowLord" type="CharacterBody2D"]
+script = ExtResource("1")
+max_health = 280
+speed = 80.0
+detection_range = 600.0
+attack_range = 50.0
+attack_damage = 30
+attack_cooldown = 1.5
+attack_duration = 0.4
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+sprite_frames = SubResource("SpriteFrames_sl")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_sl_body")
+
+[node name="AttackHitbox" type="Area2D" parent="."]
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="AttackHitbox"]
+shape = SubResource("CircleShape2D_sl_attack")
+disabled = true
+
+[node name="DetectionArea" type="Area2D" parent="."]
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="DetectionArea"]
+shape = SubResource("CircleShape2D_sl_detect")
+
+[node name="Label" type="Label" parent="."]
+offset_left = -40
+offset_top = -50
+offset_right = 40
+offset_bottom = -20
+horizontal_alignment = 1
+
+[node name="HealthBar" type="ProgressBar" parent="."]
+offset_left = -24
+offset_top = -16
+offset_right = 24
+offset_bottom = -10
+show_percentage = false
+
+[node name="Sprite" type="ColorRect" parent="."]
+offset_left = -16
+offset_top = -24
+offset_right = 16
+offset_bottom = 24
+color = Color(0.3, 0.0, 0.5, 1.0)
+
+[connection signal="body_entered" from="AttackHitbox" to="." method="_on_attack_hitbox_body_entered"]
+[connection signal="body_entered" from="DetectionArea" to="." method="_on_detection_area_body_entered"]
+[connection signal="body_exited" from="DetectionArea" to="." method="_on_detection_area_body_exited"]
