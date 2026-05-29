@@ -4,31 +4,60 @@
   "act": 2,
   "chapter": 9,
   "type": "combat",
-  "playtime_estimate_minutes": 4,
-  "objective": "Defend the merchant's wagon fortress from a massive bandit wave",
+  "playtime_estimate_minutes": 6,
+  "objective": "Defend the merchant's wagon fortress from waves of attackers",
   "background_color": [0.18, 0.14, 0.08],
   "theme": "field",
-  "enemies": [
+  "waves": [
     {
-      "type": "bandit",
-      "count": 5,
-      "positions": [
-        {"x": 100, "y": 80},
-        {"x": 250, "y": 150},
-        {"x": 400, "y": 60},
-        {"x": 550, "y": 180},
-        {"x": 300, "y": 280}
-      ],
-      "stats": {"health": 45, "speed": 95, "damage": 14}
+      "label": "Scouts",
+      "enemies": [
+        {
+          "type": "bandit",
+          "positions": [
+            {"x": 100, "y": 80},
+            {"x": 500, "y": 100}
+          ],
+          "stats": {"health": 45, "speed": 95, "damage": 14}
+        }
+      ]
     },
     {
-      "type": "skeleton_archer",
-      "count": 2,
-      "positions": [
-        {"x": 500, "y": 250},
-        {"x": 120, "y": 220}
-      ],
-      "stats": {"health": 35, "speed": 50, "damage": 12}
+      "label": "The Warband",
+      "enemies": [
+        {
+          "type": "bandit",
+          "positions": [
+            {"x": 250, "y": 150},
+            {"x": 400, "y": 60},
+            {"x": 550, "y": 180}
+          ],
+          "stats": {"health": 50, "speed": 95, "damage": 14}
+        },
+        {
+          "type": "shaman",
+          "positions": [{"x": 180, "y": 220}],
+          "stats": {"health": 55, "speed": 55, "damage": 8}
+        }
+      ]
+    },
+    {
+      "label": "Berserker Assault",
+      "enemies": [
+        {
+          "type": "berserker",
+          "positions": [{"x": 320, "y": 120}],
+          "stats": {"health": 90, "speed": 75, "damage": 18}
+        },
+        {
+          "type": "skeleton_archer",
+          "positions": [
+            {"x": 500, "y": 250},
+            {"x": 120, "y": 220}
+          ],
+          "stats": {"health": 35, "speed": 50, "damage": 12}
+        }
+      ]
     }
   ],
   "allies": [

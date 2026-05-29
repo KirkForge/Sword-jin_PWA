@@ -1,16 +1,16 @@
 extends CharacterBody2D
-## Bandit — fast flanking enemy. Tries to circle behind the player.
-## Lower HP than skeletons but faster and smarter positioning.
+## Shaman — Support enemy that buffs nearby allies with damage and speed aura.
+## Must kill first or fights get much harder. Stays behind other enemies.
 
 var damage_number_scene = preload("res://scenes/ui/damage_number.tscn")
 
-@export var max_health := 50
-@export var speed := 90.0
-@export var detection_range := 260.0
-@export var attack_range := 32.0
-@export var attack_damage := 12
-@export var attack_cooldown := 1.0
-@export var attack_duration := 0.3
+@export var max_health := 55
+@export var speed := 55.0
+@export var detection_range := 300.0
+@export var attack_range := 150.0  # Ranged — stays back
+@export var attack_damage := 8
+@export var attack_cooldown := 3.0
+@export var attack_duration := 0.5
 
 var health: int
 var player: Node2D = null
@@ -21,12 +21,16 @@ var is_dead := false
 
 # Knockback
 var knockback_velocity := Vector2.ZERO
-const KNOCKBACK_FRICTION := 600.0  # Light and gets pushed further
+const KNOCKBACK_FRICTION := 450.0
 
-# Bandit AI — flanking behavior
-var flank_direction := 1  # 1 = clockwise, -1 = counterclockwise
-var flank_timer := 0.0
-const FLANK_INTERVAL := 2.0
+# Shaman mechanics
+var aura_range := 120.0
+var aura_damage_mult := 1.3   # +30% damage to nearby allies
+var aura_speed_mult := 1.2    # +20% speed to nearby allies
+var aura_active := true
+var aura_pulse_timer := 0.0
+const AURA_PULSE_INTERVAL := 0.5
+var preferred_distance := 160.0
 
 @onready var sprite = $AnimatedSprite2D
 @onready var attack_hitbox = $AttackHitbox/CollisionShape2D
@@ -37,7 +41,6 @@ const FLANK_INTERVAL := 2.0
 func _ready():
 	health = max_health
 	attack_hitbox.set_deferred("disabled", true)
-	flank_direction = 1 if randf() < 0.5 else -1
 	_update_label()
 	sprite.play("idle")
 	
@@ -55,6 +58,7 @@ func _physics_process(delta):
 		move_and_slide()
 		return
 	
+	# Timers
 	if attack_timer > 0:
 		attack_timer -= delta
 		if attack_timer <= 0:
@@ -63,10 +67,11 @@ func _physics_process(delta):
 	if cooldown_timer > 0:
 		cooldown_timer -= delta
 	
-	flank_timer -= delta
-	if flank_timer <= 0:
-		flank_direction = 1 if randf() < 0.5 else -1
-		flank_timer = FLANK_INTERVAL
+	# Aura pulse — apply buffs to nearby allies
+	aura_pulse_timer -= delta
+	if aura_pulse_timer <= 0 and aura_active:
+		_apply_aura()
+		aura_pulse_timer = AURA_PULSE_INTERVAL
 	
 	if not player or player.is_dead:
 		velocity = Vector2.ZERO
@@ -82,17 +87,26 @@ func _physics_process(delta):
 	elif to_player.x < 0:
 		sprite.scale.x = -1
 	
-	# Chase with flanking
-	if dist <= detection_range and dist > attack_range:
-		var dir = to_player.normalized()
-		# Add perpendicular component for flanking
-		var flank = Vector2(-dir.y, dir.x) * flank_direction * 0.4
-		velocity = (dir + flank).normalized() * speed
-		if not is_attacking:
-			sprite.play("walk")
-	elif dist <= attack_range and cooldown_timer <= 0 and not is_attacking:
-		_start_attack()
-		velocity = Vector2.ZERO
+	# AI: stay behind allies, maintain distance
+	if dist <= detection_range:
+		if dist < preferred_distance - 30:
+			# Too close — retreat
+			velocity = -to_player.normalized() * speed
+			if not is_attacking:
+				sprite.play("walk")
+		elif dist > preferred_distance + 60:
+			# Too far — approach
+			velocity = to_player.normalized() * speed * 0.5
+			if not is_attacking:
+				sprite.play("walk")
+		else:
+			# Good range — strafe and attack
+			var strafe = Vector2(-to_player.y, to_player.x).normalized() * speed * 0.25
+			velocity = strafe
+			if cooldown_timer <= 0 and not is_attacking:
+				_start_attack()
+			elif not is_attacking:
+				sprite.play("idle")
 	else:
 		velocity = Vector2.ZERO
 		if not is_attacking:
@@ -100,17 +114,39 @@ func _physics_process(delta):
 	
 	move_and_slide()
 
+func _apply_aura():
+	"""Buff nearby allies with damage and speed increase."""
+	if not aura_active or is_dead:
+		return
+	
+	var buffed_count := 0
+	for child in get_parent().get_children():
+		if child.is_in_group("enemy") and child != self and not child.is_dead:
+			var dist = global_position.distance_to(child.global_position)
+			if dist <= aura_range:
+				# Apply temporary buff
+				if child.has_method("apply_shaman_buff"):
+					child.apply_shaman_buff(aura_damage_mult, aura_speed_mult, 1.0)
+				buffed_count += 1
+	
+	# Visual pulse
+	modulate = Color(0.3, 0.8, 1.0)  # Blue flash
+	await get_tree().create_timer(0.1).timeout
+	if not is_dead:
+		modulate = Color.WHITE
+
 func _start_attack():
 	is_attacking = true
 	attack_timer = attack_duration
 	cooldown_timer = attack_duration + attack_cooldown
 	attack_hitbox.disabled = false
 	sprite.play("attack")
-	AudioManager.play_random_pitch("sword_swing", 0.9, 1.1)
 	
-	if player:
-		var to_player = (player.global_position - global_position).normalized()
-		velocity = to_player * speed * 2.5
+	# Blue bolt visual
+	modulate = Color(0.4, 0.5, 1.0)
+	await get_tree().create_timer(0.15).timeout
+	if not is_dead:
+		modulate = Color.WHITE
 
 func _end_attack():
 	is_attacking = false
@@ -125,7 +161,7 @@ func show_damage_number(amount: int, is_heal := false):
 	if is_heal:
 		dn.setup_heal(amount)
 	else:
-		dn.setup(amount)
+		dn.setup(amount, Color.CYAN)
 
 func take_damage(amount: int):
 	if is_dead:
@@ -134,7 +170,7 @@ func take_damage(amount: int):
 	health -= amount
 	_update_label()
 	show_damage_number(amount)
-	AudioManager.play_sfx("player_hurt")
+	AudioManager.play_sfx("sword_hit")
 	
 	modulate = Color.RED
 	await get_tree().create_timer(0.1).timeout
@@ -146,13 +182,14 @@ func take_damage(amount: int):
 
 func _update_label():
 	if label:
-		label.text = "BANDIT\nHP:%d/%d" % [health, max_health]
+		label.text = "SHAMAN\nHP:%d/%d" % [health, max_health]
 	if health_bar:
 		health_bar.update_health(health, max_health)
 
 func _die():
 	is_dead = true
-	GameState.record_kill("bandit")
+	aura_active = false
+	GameState.record_kill("shaman")
 	velocity = Vector2.ZERO
 	$CollisionShape2D.set_deferred("disabled", true)
 	attack_hitbox.set_deferred("disabled", true)
@@ -163,18 +200,19 @@ func _die():
 		potion.global_position = global_position
 		get_tree().current_scene.add_child(potion)
 	
-	# Loot drop (15% for trash)
-	var loot = GameState.roll_loot_drop("bandit", false)
+	# Loot drop
+	var loot = GameState.roll_loot_drop("shaman", false)
 	if not loot.is_empty():
 		_show_loot_popup(loot)
 	
-	modulate = Color.DARK_GRAY
-	await get_tree().create_timer(0.3).timeout
+	modulate = Color(0.2, 0.4, 0.6)
+	await get_tree().create_timer(0.5).timeout
 	queue_free()
 
 func _on_attack_hitbox_body_entered(body):
 	if body.has_method("take_damage") and body != self:
 		body.take_damage(attack_damage)
+		HitStop.trigger_light()
 
 func _on_detection_area_body_entered(body):
 	if body.is_in_group("player"):
@@ -185,22 +223,13 @@ func _on_detection_area_body_exited(body):
 		player = null
 
 func apply_knockback(direction: Vector2, force: float):
-	knockback_velocity = direction * force * 1.2  # Bandits get knocked further
+	knockback_velocity = direction * force * 0.8
 	modulate = Color(1.5, 0.5, 0.5)
 	await get_tree().create_timer(0.08).timeout
 	if not is_dead:
 		modulate = Color.WHITE
 
-func apply_shaman_buff(damage_mult: float, speed_mult: float, duration: float):
-	attack_damage = int(attack_damage * damage_mult)
-	speed *= speed_mult
-	await get_tree().create_timer(duration).timeout
-	if not is_dead:
-		attack_damage = int(attack_damage / damage_mult)
-		speed /= speed_mult
-
 func _show_loot_popup(loot: Dictionary):
-	"""Show a brief loot notification above the enemy."""
 	var label_node := Label.new()
 	var rarity: String = loot.get("rarity", "common")
 	var weapon_id: String = loot.get("weapon_id", "?")

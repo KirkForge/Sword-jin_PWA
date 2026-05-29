@@ -4,26 +4,34 @@
   "act": 2,
   "chapter": 6,
   "type": "combat",
-  "playtime_estimate_minutes": 4,
-  "objective": "Clear the ancient ruins of ghostly defenders",
+  "playtime_estimate_minutes": 5,
+  "objective": "Clear the ancient ruins of spectral defenders",
   "background_color": [0.08, 0.06, 0.18],
   "theme": "fortress",
-  "enemies": [
+  "waves": [
     {
-      "type": "ghost",
-      "count": 3,
-      "positions": [
-        {"x": 200, "y": 100},
-        {"x": 400, "y": 200},
-        {"x": 550, "y": 150}
-      ],
-      "stats": {"health": 35, "speed": 60, "damage": 18}
+      "label": "Restless Spirits",
+      "enemies": [
+        {
+          "type": "ghost",
+          "positions": [
+            {"x": 200, "y": 100},
+            {"x": 400, "y": 200},
+            {"x": 550, "y": 150}
+          ],
+          "stats": {"health": 35, "speed": 60, "damage": 18}
+        }
+      ]
     },
     {
-      "type": "ghost",
-      "count": 1,
-      "positions": [{"x": 320, "y": 250}],
-      "stats": {"health": 60, "speed": 55, "damage": 24}
+      "label": "The Wraith",
+      "enemies": [
+        {
+          "type": "wraith",
+          "positions": [{"x": 320, "y": 180}],
+          "stats": {"health": 70, "speed": 65, "damage": 15}
+        }
+      ]
     }
   ],
   "dialogue": [

@@ -1,6 +1,6 @@
 extends Node
 # GameState — Persistent save/load + progression tracking
-# v0.85 — cinematic crits, crit tracking, wave system
+# v0.86 — 11 enemy types, shaman buff system, new achievements
 
 const SAVE_FILE := "user://swordjin_save.json"
 
@@ -162,6 +162,46 @@ const BESTIARY := {
 		},
 		"stats": {"hp": 180, "damage": 30, "speed": 40, "type": "Construct"},
 	},
+	"necromancer": {
+		"name": "Necromancer",
+		"description": "Dark caster that raises skeleton minions. Stays at range — priority kill target.",
+		"lore": {
+			5: "Necromancers bind residual battlefield malice into new skeletons. Kill the caster and the summons fall.",
+			25: "The most powerful necromancers can raise entire graveyards. The Siege of Ashmont saw 10,000 undead.",
+			50: "Necromancy was once a sacred art — preserving heroes to fight again. The Crimson Fang corrupted it.",
+		},
+		"stats": {"hp": 60, "damage": 10, "speed": 50, "type": "Undead • Caster"},
+	},
+	"berserker": {
+		"name": "Berserker",
+		"description": "Dual-wielding brute that gets faster and stronger as HP drops. Enrages at 50% health.",
+		"lore": {
+			5: "Berserkers fight with reckless fury. As wounds accumulate, their rage amplifies rather than weakens them.",
+			25: "Crimson Fang berserkers drink a battle elixir before combat — it removes pain but shortens their lives.",
+			50: "The berserker's red fury is a blood magic technique. At full enrage, they can shatter stone with bare fists.",
+		},
+		"stats": {"hp": 90, "damage": 18, "speed": 75, "type": "Human • Brute"},
+	},
+	"shaman": {
+		"name": "Shaman",
+		"description": "Support caster that buffs nearby allies with damage and speed aura. Kill first.",
+		"lore": {
+			5: "Shamans channel elemental spirits to empower their allies. Their aura makes every nearby enemy deadlier.",
+			25: "A shaman's totem is the source of their power. Breaking it dispels all active buffs instantly.",
+			50: "The greatest shaman could empower an entire army. The Battle of Red Plains was won by three shamans.",
+		},
+		"stats": {"hp": 55, "damage": 8, "speed": 55, "type": "Human • Support"},
+	},
+	"wraith": {
+		"name": "Wraith",
+		"description": "Elite spectral entity. Teleports short distances, life drain AoE. Intangible during phase.",
+		"lore": {
+			5: "Wraiths are ascended ghosts — souls that consumed others to gain power. Their life drain is insatiable.",
+			25: "A wraith's teleport is a short leap through the spirit realm. They're vulnerable for a moment after reappearing.",
+			50: "The Wraith King beneath the capital commands thousands. His crown is forged from consumed souls.",
+		},
+		"stats": {"hp": 70, "damage": 15, "speed": 65, "type": "Spectral • Elite"},
+	},
 }
 
 # Kill tracking: enemy_type → total kill count (persisted)
@@ -277,6 +317,18 @@ const ACHIEVEMENTS := {
 		"icon": "🎯",
 		"description": "Land 50 critical hits total.",
 		"category": "Mastery",
+	},
+	"enraged_kill": {
+		"name": "Rage Against the Dying",
+		"icon": "😡",
+		"description": "Kill a berserker while it's enraged.",
+		"category": "Combat",
+	},
+	"summon_slayer": {
+		"name": "Necromancer's Bane",
+		"icon": "💀",
+		"description": "Kill a necromancer and watch its summons fall.",
+		"category": "Combat",
 	},
 	# Streak (Retention)
 	"streak_3": {
@@ -437,7 +489,7 @@ func _ready():
 
 func save_game():
 	var data := {
-		"version": "2.5",
+		"version": "2.6",
 		"current_act": current_act,
 		"current_chapter": current_chapter,
 		"completed_chapters": completed_chapters,

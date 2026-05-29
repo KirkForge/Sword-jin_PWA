@@ -1,5 +1,5 @@
 extends Node2D
-# LevelManager — v0.85 — Wave system, cinematic crits, all 7 enemy types
+# LevelManager — v0.86 — 11 enemy types, wave system, cinematic crits
 
 @onready var player = $Player
 @onready var skeleton_scene = preload("res://scenes/skeleton.tscn")
@@ -9,6 +9,10 @@ extends Node2D
 @onready var assassin_scene = preload("res://scenes/assassin.tscn")
 @onready var golem_scene = preload("res://scenes/golem.tscn")
 @onready var ghost_scene = preload("res://scenes/ghost.tscn")
+@onready var necromancer_scene = preload("res://scenes/necromancer.tscn")
+@onready var berserker_scene = preload("res://scenes/berserker.tscn")
+@onready var shaman_scene = preload("res://scenes/shaman.tscn")
+@onready var wraith_scene = preload("res://scenes/wraith.tscn")
 @onready var merchant_scene = preload("res://scenes/merchant_ally.tscn")
 @onready var gate_scene = preload("res://scenes/iron_gate.tscn")
 @onready var victory_screen_scene = preload("res://scenes/ui/victory_screen.tscn")
@@ -392,6 +396,14 @@ func _spawn_enemy(type: String, pos: Vector2, stats: Dictionary):
 			inst = golem_scene.instantiate()
 		"ghost":
 			inst = ghost_scene.instantiate()
+		"necromancer":
+			inst = necromancer_scene.instantiate()
+		"berserker":
+			inst = berserker_scene.instantiate()
+		"shaman":
+			inst = shaman_scene.instantiate()
+		"wraith":
+			inst = wraith_scene.instantiate()
 		_:
 			inst = skeleton_scene.instantiate()
 		
@@ -441,7 +453,19 @@ func _apply_daily_modifiers():
 			# Determine enemy type from script name
 			var enemy_type := "skeleton"
 			var script_path = enemy.get_script().resource_path if enemy.get_script() else ""
-			if "bandit" in script_path:
+			if "skeleton_captain" in script_path:
+				enemy_type = "skeleton_captain"
+			elif "skeleton_archer" in script_path:
+				enemy_type = "skeleton_archer"
+			elif "necromancer" in script_path:
+				enemy_type = "necromancer"
+			elif "berserker" in script_path:
+				enemy_type = "berserker"
+			elif "shaman" in script_path:
+				enemy_type = "shaman"
+			elif "wraith" in script_path:
+				enemy_type = "wraith"
+			elif "bandit" in script_path:
 				enemy_type = "bandit"
 			elif "assassin" in script_path:
 				enemy_type = "assassin"
@@ -449,10 +473,6 @@ func _apply_daily_modifiers():
 				enemy_type = "golem"
 			elif "ghost" in script_path:
 				enemy_type = "ghost"
-			elif "skeleton_captain" in script_path:
-				enemy_type = "skeleton_captain"
-			elif "skeleton_archer" in script_path:
-				enemy_type = "skeleton_archer"
 			_spawn_enemy(enemy_type, new_pos, {})
 		# Recount
 		enemies_remaining = 0

@@ -1,6 +1,6 @@
 extends CharacterBody2D
 # Player — Jin the Swordmaster
-# v0.85 — cinematic crit system, 3-hit combo, knockback
+# v0.86 — cinematic crit system, 3-hit combo, knockback, 11 enemy types
 
 var damage_number_scene = preload("res://scenes/ui/damage_number.tscn")
 

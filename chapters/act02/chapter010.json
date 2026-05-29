@@ -40,6 +40,11 @@
       "label": "Spectral Vanguard",
       "enemies": [
         {
+          "type": "necromancer",
+          "positions": [{"x": 150, "y": 150}],
+          "stats": {"health": 60, "speed": 50, "damage": 10}
+        },
+        {
           "type": "ghost",
           "positions": [
             {"x": 300, "y": 120},

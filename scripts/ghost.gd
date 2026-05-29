@@ -219,6 +219,14 @@ func apply_knockback(direction: Vector2, force: float):
 	if not is_dead:
 		modulate = Color.WHITE
 
+func apply_shaman_buff(damage_mult: float, speed_mult: float, duration: float):
+	attack_damage = int(attack_damage * damage_mult)
+	speed *= speed_mult
+	await get_tree().create_timer(duration).timeout
+	if not is_dead:
+		attack_damage = int(attack_damage / damage_mult)
+		speed /= speed_mult
+
 func _show_loot_popup(loot: Dictionary):
 	"""Show a brief loot notification above the enemy."""
 	var label_node := Label.new()
