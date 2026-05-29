@@ -6,6 +6,7 @@ extends Control
 @onready var continue_btn = $CenterContainer/VBoxContainer/ContinueButton
 @onready var select_btn = $CenterContainer/VBoxContainer/SelectButton
 @onready var stars_label = $CenterContainer/VBoxContainer/StarsLabel
+@onready var collection_label = $CenterContainer/VBoxContainer/CollectionLabel
 @onready var chm = $ChapterManager
 
 func _ready():
@@ -27,6 +28,15 @@ func _ready():
 		stars_label.add_theme_color_override("font_color", Color(1.0, 0.843, 0.0))
 	else:
 		stars_label.text = ""
+	
+	# Show weapon collection progress
+	if collection_label:
+		var cp := GameState.get_collection_progress()
+		if cp.collected > 0:
+			collection_label.text = "⚔ %d / %d Weapons (%.0f%%)" % [cp.collected, cp.total, cp.percentage]
+			collection_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
+		else:
+			collection_label.text = ""
 
 func _on_start_pressed():
 	ChapterDatabase.set_current_chapter("act01_ch001")

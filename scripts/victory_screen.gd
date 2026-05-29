@@ -1,6 +1,6 @@
 extends CanvasLayer
 # VictoryScreen — Chapter complete overlay
-# v0.74: Star ratings (⭐-⭐⭐⭐) + XP + gold + weapon unlock
+# v0.75: Loot drops + rarity display + collection progress
 
 signal next_chapter_pressed
 signal chapter_select_pressed
@@ -12,6 +12,7 @@ signal title_screen_pressed
 @onready var xp_label = $Panel/VBoxContainer/XPLabel
 @onready var gold_label = $Panel/VBoxContainer/GoldLabel
 @onready var reward_label = $Panel/VBoxContainer/RewardLabel
+@onready var loot_label = $Panel/VBoxContainer/LootLabel
 @onready var continue_btn = $Panel/VBoxContainer/HBoxContainer/ContinueButton
 @onready var select_btn = $Panel/VBoxContainer/HBoxContainer/SelectButton
 @onready var title_btn = $Panel/VBoxContainer/HBoxContainer/TitleButton
@@ -63,6 +64,27 @@ func show_victory(chapter_title: String, xp_gained: int, gold_gained: int = 0, r
 	else:
 		reward_label.text = "Unlocked: " + " | ".join(reward_parts)
 		reward_label.visible = true
+	
+	# Loot drops line
+	if loot_label:
+		var loot_summary := GameState.get_loot_summary()
+		if loot_summary.total_drops > 0:
+			var loot_parts: Array[String] = []
+			# Show drops by rarity (legendary first)
+			var rarity_order := ["legendary", "rare", "uncommon", "common"]
+			for r in rarity_order:
+				if loot_summary.by_rarity.has(r):
+					var data = loot_summary.by_rarity[r]
+					var color_hex: String = GameState.RARITY.get(r, {}).get("color", "#FFFFFF")
+					var label_text: String = GameState.RARITY.get(r, {}).get("label", r)
+					loot_parts.append("[color=%s]%s x%d[/color]" % [color_hex, label_text, data.count])
+			loot_label.text = "Loot: " + "  ".join(loot_parts)
+			if loot_summary.new_weapons > 0:
+				loot_label.text += "  ✨%d NEW" % loot_summary.new_weapons
+			loot_label.visible = true
+		else:
+			loot_label.text = "Loot: —"
+			loot_label.visible = true
 	
 	# Show / hide continue based on whether there's a next chapter
 	continue_btn.visible = _has_next_chapter

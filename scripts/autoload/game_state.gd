@@ -1,17 +1,25 @@
 extends Node
 # GameState — Persistent save/load + progression tracking
-# v0.74 — chapter star ratings, death tracking, par times
+# v0.75 — weapon rarity drops, loot tables, variable ratio reinforcement
 
 const SAVE_FILE := "user://swordjin_save.json"
 
+# Rarity tiers — color coding & drop weights
+const RARITY := {
+	"common":    {"color": "#AAAAAA", "weight": 60, "label": "Common"},
+	"uncommon":  {"color": "#55FF55", "weight": 25, "label": "Uncommon"},
+	"rare":      {"color": "#5555FF", "weight": 12, "label": "Rare"},
+	"legendary": {"color": "#FFAA00", "weight": 3,  "label": "Legendary"},
+}
+
 # Weapon definitions — unlocked weapons auto-equip if better
 const WEAPON_STATS := {
-	"broken_sword":    {"damage": 8,  "cooldown": 0.40, "description": "A rusted relic. Barely sharp."},
-	"steel_dagger":    {"damage": 12, "cooldown": 0.30, "description": "Merchant's gift. Light and lethal."},
-	"captains_blade":  {"damage": 15, "cooldown": 0.50, "description": "A commander's weapon. Heavy but ruthless."},
-	"spirit_edge":     {"damage": 18, "cooldown": 0.35, "description": "Ghost-forged blade. Cuts ethereal and flesh alike."},
-	"crimson_edge":    {"damage": 22, "cooldown": 0.45, "description": "Fang officer's saber. Wickedly fast."},
-	"wardens_halberd": {"damage": 28, "cooldown": 0.60, "description": "Gate Warden's polearm. Devastating reach."},
+	"broken_sword":    {"damage": 8,  "cooldown": 0.40, "rarity": "common",    "description": "A rusted relic. Barely sharp."},
+	"steel_dagger":    {"damage": 12, "cooldown": 0.30, "rarity": "common",    "description": "Merchant's gift. Light and lethal."},
+	"captains_blade":  {"damage": 15, "cooldown": 0.50, "rarity": "uncommon",  "description": "A commander's weapon. Heavy but ruthless."},
+	"spirit_edge":     {"damage": 18, "cooldown": 0.35, "rarity": "uncommon",  "description": "Ghost-forged blade. Cuts ethereal and flesh alike."},
+	"crimson_edge":    {"damage": 22, "cooldown": 0.45, "rarity": "rare",      "description": "Fang officer's saber. Wickedly fast."},
+	"wardens_halberd": {"damage": 28, "cooldown": 0.60, "rarity": "legendary", "description": "Gate Warden's polearm. Devastating reach."},
 }
 
 # Skill definitions
@@ -81,6 +89,10 @@ var damage_buff_timer: float = 0.0
 # ⭐⭐⭐ = complete under par time
 var chapter_stars: Dictionary = {}
 
+# Loot tracking
+var chapter_loot: Array = []  # Runtime: items dropped this chapter run
+var collected_weapons: Dictionary = {}  # weapon_id → {"count": int, "best_rarity": String}
+
 # Chapter performance tracking (runtime, reset per chapter)
 var chapter_start_time: float = 0.0
 var chapter_deaths: int = 0
@@ -108,6 +120,7 @@ func save_game():
 		"inventory": inventory,
 		"settings": settings,
 		"chapter_stars": chapter_stars,
+		"collected_weapons": collected_weapons,
 	}
 	
 	var file := FileAccess.open(SAVE_FILE, FileAccess.WRITE)
@@ -154,6 +167,7 @@ func load_game():
 		has_gate_key = data.get("has_gate_key", false)
 		inventory = data.get("inventory", {"potions": 0, "keys": {}, "artifacts": [], "gold": 0})
 		chapter_stars = data.get("chapter_stars", {})
+		collected_weapons = data.get("collected_weapons", {})
 		settings = data.get("settings", {
 			"master_volume": 1.0, "sfx_volume": 1.0, "bgm_volume": 0.7,
 			"screen_shake": true, "hit_stop": true, "show_damage_numbers": true,
@@ -261,6 +275,7 @@ func reset_chapter_state():
 	damage_buff_timer = 0.0
 	chapter_start_time = Time.get_ticks_msec() / 1000.0
 	chapter_deaths = 0
+	chapter_loot.clear()
 
 func _save_indexeddb():
 	if OS.has_feature("web") and OS.has_feature("wasm"):
@@ -328,3 +343,144 @@ class ChapterProgress:
 	var best_time: float
 	var stars: int = 0
 	var completed: bool = false
+
+# ─── Loot Drop System ───────────────────────────────────
+# Variable ratio reinforcement: enemies drop loot on death
+# Boss/champion kills = guaranteed drop + rare chance
+# Trash mob kills = 5% uncommon drop chance
+
+func roll_loot_drop(enemy_type: String, is_boss: bool = false) -> Dictionary:
+	"""Roll for a loot drop when an enemy dies. Returns {} if no drop."""
+	var rng := RandomNumberGenerator.new()
+	rng.randomize()
+	
+	# Drop chance: trash 15%, boss/champion 100%
+	var drop_chance := 1.0 if is_boss else 0.15
+	if rng.randf() > drop_chance:
+		return {}
+	
+	# Roll rarity: weighted random from RARITY
+	var rarity := _roll_rarity(is_boss)
+	
+	# Pick a weapon of that rarity (or nearest lower)
+	var weapon_id := _pick_weapon_by_rarity(rarity)
+	if weapon_id.is_empty():
+		return {}
+	
+	var loot := {
+		"weapon_id": weapon_id,
+		"rarity": rarity,
+		"gold_value": _gold_value_for_rarity(rarity),
+	}
+	
+	# Track in chapter loot
+	chapter_loot.append(loot)
+	
+	# If weapon not yet owned, unlock it
+	if weapon_id not in unlocked_weapons:
+		unlocked_weapons.append(weapon_id)
+		_auto_equip_best_weapon()
+		loot["is_new"] = true
+	else:
+		loot["is_new"] = false
+	
+	# Update collection tracking
+	if not collected_weapons.has(weapon_id):
+		collected_weapons[weapon_id] = {"count": 0, "best_rarity": rarity}
+	collected_weapons[weapon_id]["count"] += 1
+	var rarity_order := ["common", "uncommon", "rare", "legendary"]
+	var current_rank := rarity_order.find(collected_weapons[weapon_id]["best_rarity"])
+	var new_rank := rarity_order.find(rarity)
+	if new_rank > current_rank:
+		collected_weapons[weapon_id]["best_rarity"] = rarity
+	
+	# Add gold value
+	player_gold += loot.gold_value
+	inventory["gold"] = player_gold
+	
+	print("LOOT DROP: %s [%s] (gold: %d)%s" % [weapon_id, rarity, loot.gold_value, " NEW!" if loot.get("is_new") else " dup"])
+	
+	save_game()
+	return loot
+
+func _roll_rarity(is_boss: bool) -> String:
+	"""Weighted random rarity roll. Bosses get +15% to rare/legendary."""
+	var rng := RandomNumberGenerator.new()
+	rng.randomize()
+	
+	var weights := {}
+	for r in RARITY.keys():
+		weights[r] = RARITY[r].weight
+	
+	# Boss bonus: shift weight from common up to rare/legendary
+	if is_boss:
+		weights["common"] = max(10, weights["common"] - 30)
+		weights["uncommon"] += 10
+		weights["rare"] += 12
+		weights["legendary"] += 8
+	
+	var total := 0.0
+	for w in weights.values():
+		total += w
+	
+	var roll := rng.randf() * total
+	var cumulative := 0.0
+	for r in ["legendary", "rare", "uncommon", "common"]:
+		cumulative += weights[r]
+		if roll <= cumulative:
+			return r
+	return "common"
+
+func _pick_weapon_by_rarity(rarity: String) -> String:
+	"""Pick a weapon matching the rolled rarity. Falls back to lower rarity."""
+	var rarity_order := ["legendary", "rare", "uncommon", "common"]
+	var target_idx := rarity_order.find(rarity)
+	
+	# Try exact rarity first, then fall back to lower
+	for i in range(target_idx, rarity_order.size()):
+		var r := rarity_order[i]
+		var candidates: Array = []
+		for wid in WEAPON_STATS.keys():
+			if WEAPON_STATS[wid].get("rarity", "common") == r:
+				candidates.append(wid)
+		if not candidates.is_empty():
+			candidates.sort()
+			var rng := RandomNumberGenerator.new()
+			rng.randomize()
+			return candidates[rng.randi() % candidates.size()]
+	return ""
+
+func _gold_value_for_rarity(rarity: String) -> int:
+	match rarity:
+		"common":    return 5
+		"uncommon":  return 15
+		"rare":      return 40
+		"legendary": return 100
+		_:           return 5
+
+func get_loot_summary() -> Dictionary:
+	"""Get summary of chapter loot for victory screen."""
+	var by_rarity := {}
+	for loot in chapter_loot:
+		var r: String = loot.get("rarity", "common")
+		if not by_rarity.has(r):
+			by_rarity[r] = {"count": 0, "items": [], "gold": 0}
+		by_rarity[r].count += 1
+		by_rarity[r].items.append(loot.weapon_id)
+		by_rarity[r].gold += loot.get("gold_value", 0)
+	return {
+		"total_drops": chapter_loot.size(),
+		"total_gold": chapter_loot.reduce(func(acc, l): return acc + l.get("gold_value", 0), 0),
+		"new_weapons": chapter_loot.filter(func(l): return l.get("is_new", false)).size(),
+		"by_rarity": by_rarity,
+	}
+
+func get_collection_progress() -> Dictionary:
+	"""Get weapon collection stats for UI."""
+	var total_weapons := WEAPON_STATS.size()
+	var collected := collected_weapons.size()
+	return {
+		"total": total_weapons,
+		"collected": collected,
+		"percentage": (collected * 100.0 / total_weapons) if total_weapons > 0 else 0.0,
+	}

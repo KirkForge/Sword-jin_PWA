@@ -171,6 +171,11 @@ func _die():
 		get_tree().current_scene.add_child(potion)
 		print("Potion dropped!")
 	
+	# Loot drop (15% chance for trash mobs)
+	var loot = GameState.roll_loot_drop("skeleton_archer", false)
+	if not loot.is_empty():
+		_show_loot_popup(loot)
+	
 	modulate = Color.DARK_GRAY
 	velocity = Vector2.ZERO
 	
@@ -179,6 +184,25 @@ func _die():
 	
 	await get_tree().create_timer(0.5).timeout
 	queue_free()
+
+func _show_loot_popup(loot: Dictionary):
+	"""Show a brief loot notification above the enemy."""
+	var label_node := Label.new()
+	var rarity: String = loot.get("rarity", "common")
+	var weapon_id: String = loot.get("weapon_id", "?")
+	var color_hex: String = GameState.RARITY.get(rarity, {}).get("color", "#FFFFFF")
+	label_node.text = "⚔ %s [%s]" % [weapon_id.replace("_", " ").capitalize(), GameState.RARITY.get(rarity, {}).get("label", rarity)]
+	label_node.add_theme_color_override("font_color", Color.from_string(color_hex, Color.WHITE))
+	label_node.add_theme_font_size_override("font_size", 14)
+	label_node.global_position = global_position + Vector2(-40, -40)
+	label_node.z_index = 100
+	get_tree().current_scene.add_child(label_node)
+	
+	var tween := label_node.create_tween()
+	tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	tween.parallel().tween_property(label_node, "position:y", label_node.position.y - 30, 1.5)
+	tween.parallel().tween_property(label_node, "modulate:a", 0.0, 1.5).set_delay(0.5)
+	tween.tween_callback(label_node.queue_free)
 
 func _on_attack_hitbox_body_entered(body):
 	if body.has_method("take_damage") and body != self and body.is_in_group("player"):

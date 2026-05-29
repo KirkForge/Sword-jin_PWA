@@ -65,6 +65,13 @@ text = "Unlocked: Weapon | Skill"
 horizontal_alignment = 1
 vertical_alignment = 1
 
+[node name="LootLabel" type="Label" parent="Panel/VBoxContainer"]
+theme_override_font_sizes/font_size = 16
+text = "Loot: —"
+horizontal_alignment = 1
+vertical_alignment = 1
+visible = false
+
 [node name="Spacer" type="Control" parent="Panel/VBoxContainer"]
 custom_minimum_size = Vector2(0, 20)
 layout_mode = 2

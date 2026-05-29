@@ -178,6 +178,11 @@ func _die():
 	$CollisionShape2D.set_deferred("disabled", true)
 	attack_hitbox.set_deferred("disabled", true)
 	
+	# Loot drop (15% for trash)
+	var loot = GameState.roll_loot_drop("assassin", false)
+	if not loot.is_empty():
+		_show_loot_popup(loot)
+	
 	# Smoke bomb death
 	modulate.a = 0.0
 	await get_tree().create_timer(0.5).timeout
@@ -198,3 +203,21 @@ func _on_detection_area_body_entered(body):
 func _on_detection_area_body_exited(body):
 	if body.is_in_group("player") and body == player:
 		player = null
+
+func _show_loot_popup(loot: Dictionary):
+	"""Show a brief loot notification above the enemy."""
+	var label_node := Label.new()
+	var rarity: String = loot.get("rarity", "common")
+	var weapon_id: String = loot.get("weapon_id", "?")
+	var color_hex: String = GameState.RARITY.get(rarity, {}).get("color", "#FFFFFF")
+	label_node.text = "⚔ %s [%s]" % [weapon_id.replace("_", " ").capitalize(), GameState.RARITY.get(rarity, {}).get("label", rarity)]
+	label_node.add_theme_color_override("font_color", Color.from_string(color_hex, Color.WHITE))
+	label_node.add_theme_font_size_override("font_size", 14)
+	label_node.global_position = global_position + Vector2(-40, -40)
+	label_node.z_index = 100
+	get_tree().current_scene.add_child(label_node)
+	var tween := label_node.create_tween()
+	tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	tween.parallel().tween_property(label_node, "position:y", label_node.position.y - 30, 1.5)
+	tween.parallel().tween_property(label_node, "modulate:a", 0.0, 1.5).set_delay(0.5)
+	tween.tween_callback(label_node.queue_free)
