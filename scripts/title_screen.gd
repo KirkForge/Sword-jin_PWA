@@ -1,12 +1,13 @@
 extends Control
 # TitleScreen — Entry point: start, continue, chapter select
-# v0.79 — Added daily challenge button
+# v0.80 — Added leaderboard button
 
 @onready var start_btn = $CenterContainer/VBoxContainer/StartButton
 @onready var continue_btn = $CenterContainer/VBoxContainer/ContinueButton
 @onready var select_btn = $CenterContainer/VBoxContainer/SelectButton
 @onready var bestiary_btn = $CenterContainer/VBoxContainer/BestiaryButton
 @onready var achievement_btn = $CenterContainer/VBoxContainer/AchievementButton
+@onready var leaderboard_btn = $CenterContainer/VBoxContainer/LeaderboardButton
 @onready var stars_label = $CenterContainer/VBoxContainer/StarsLabel
 @onready var collection_label = $CenterContainer/VBoxContainer/CollectionLabel
 @onready var bestiary_label = $CenterContainer/VBoxContainer/BestiaryLabel
@@ -20,6 +21,7 @@ var bestiary_screen: CanvasLayer = null
 var achievement_screen: CanvasLayer = null
 var achievement_toast: CanvasLayer = null
 var daily_challenge_screen: CanvasLayer = null
+var leaderboard_screen: CanvasLayer = null
 
 func _ready():
 	# Reset daily challenge runtime state when returning to title
@@ -210,3 +212,24 @@ func _on_daily_challenge_closed():
 		else:
 			daily_challenge_btn.text = "✅ Daily Done"
 			daily_challenge_btn.modulate = Color(0.5, 0.5, 0.5)
+
+func _on_leaderboard_pressed():
+	AudioManager.play_sfx("ui_click")
+	if leaderboard_screen == null:
+		leaderboard_screen = load("res://scenes/ui/leaderboard_screen.tscn").instantiate()
+		leaderboard_screen.back_pressed.connect(_on_leaderboard_closed)
+		leaderboard_screen.ghost_run_requested.connect(_on_ghost_run_start)
+		add_child(leaderboard_screen)
+	leaderboard_screen.show_leaderboard()
+
+func _on_leaderboard_closed():
+	start_btn.grab_focus()
+
+func _on_ghost_run_start(chapter_id: String):
+	"""Start a chapter with ghost run enabled."""
+	ChapterDatabase.set_current_chapter(chapter_id)
+	GameState.reset_chapter_state()
+	GameState.ghost_runs_enabled = true
+	AudioManager.play_sfx("ui_click")
+	AudioManager.stop_bgm(0.5)
+	get_tree().change_scene_to_file("res://scenes/main.tscn")

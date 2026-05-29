@@ -1,6 +1,6 @@
 extends Node
 # GameState — Persistent save/load + progression tracking
-# v0.79 — daily challenge with modifiers and bonus rewards
+# v0.80 — ghost runs + local leaderboard
 
 const SAVE_FILE := "user://swordjin_save.json"
 
@@ -285,6 +285,19 @@ const ACHIEVEMENTS := {
 		"description": "Complete 7 daily challenges.",
 		"category": "Mastery",
 	},
+	# Ghost Runs (Social)
+	"ghost_hunter": {
+		"name": "Ghost Hunter",
+		"icon": "👻",
+		"description": "Beat your own ghost in a chapter.",
+		"category": "Mastery",
+	},
+	"speed_demon_5": {
+		"name": "Speed Demon",
+		"icon": "⚡",
+		"description": "Earn ⭐⭐⭐ on 5 different chapters.",
+		"category": "Mastery",
+	},
 }
 
 # Achievement tracking (persisted)
@@ -385,6 +398,9 @@ var collected_weapons: Dictionary = {}  # weapon_id → {"count": int, "best_rar
 var chapter_start_time: float = 0.0
 var chapter_deaths: int = 0
 
+# Ghost run settings (persisted)
+var ghost_runs_enabled: bool = true  # Whether to show ghost replays
+
 func _ready():
 	load_game()
 	_check_daily_streak()
@@ -418,6 +434,7 @@ func save_game():
 		"daily_challenge_completed_today": daily_challenge_completed_today,
 		"daily_challenge_best_gold": daily_challenge_best_gold,
 		"daily_challenge_total_completed": daily_challenge_total_completed,
+		"ghost_runs_enabled": ghost_runs_enabled,
 	}
 	
 	var file := FileAccess.open(SAVE_FILE, FileAccess.WRITE)
@@ -473,6 +490,7 @@ func load_game():
 		daily_challenge_completed_today = data.get("daily_challenge_completed_today", false)
 		daily_challenge_best_gold = data.get("daily_challenge_best_gold", 0)
 		daily_challenge_total_completed = data.get("daily_challenge_total_completed", 0)
+		ghost_runs_enabled = data.get("ghost_runs_enabled", true)
 		settings = data.get("settings", {
 			"master_volume": 1.0, "sfx_volume": 1.0, "bgm_volume": 0.7,
 			"screen_shake": true, "hit_stop": true, "show_damage_numbers": true,
@@ -941,8 +959,22 @@ func check_chapter_achievements(deaths: int, stars: int) -> void:
 	if stars >= 3:
 		unlock_achievement("speed_demon")
 	
+	# Speed Demon: 3-star 5 different chapters
+	var three_star_count := 0
+	for chapter_id in chapter_stars:
+		if chapter_stars[chapter_id] >= 3:
+			three_star_count += 1
+	if three_star_count >= 5:
+		unlock_achievement("speed_demon_5")
+	
 	# Re-check general achievements too
 	check_achievements()
+
+func check_ghost_achievement(chapter_id: String, completion_time: float) -> void:
+	"""Check if player beat their ghost. Called after chapter completion if ghost was active."""
+	var best_time := GhostRecorder.get_best_time(chapter_id)
+	if best_time > 0 and completion_time < best_time:
+		unlock_achievement("ghost_hunter")
 
 func check_loot_achievements(rarity: String) -> void:
 	"""Check achievements that depend on loot drops. Call after loot roll."""
@@ -1169,4 +1201,21 @@ func reset_daily_challenge_if_new_day() -> void:
 	var today := Time.get_datetime_string_from_system().split(" ")[0]
 	# If we have a last_login_date and it's different from today, the challenge resets
 	# (The streak system already handles last_login_date updates)
-	# daily_challenge_completed_today resets naturally since it's date-keyed
+	# daily_challenge_completed_today resets naturally since it's date-keyedfunc get_leaderboard_data() -> Array:
+	"""Get leaderboard data for all chapters: chapter_id, title, best_time, stars, has_ghost."""
+	var result := []
+	var sorted_ids := ChapterDatabase.chapters.keys()
+	sorted_ids.sort()
+	for chapter_id in sorted_ids:
+		var ch = ChapterDatabase.chapters[chapter_id]
+		if not ch.get("is_unlocked", false):
+			continue
+		var entry := {
+			"chapter_id": chapter_id,
+			"title": ch.get("title", chapter_id),
+			"best_time": GhostRecorder.get_best_time(chapter_id),
+			"stars": get_stars(chapter_id),
+			"has_ghost": GhostRecorder.has_ghost(chapter_id),
+		}
+		result.append(entry)
+	return result

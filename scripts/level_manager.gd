@@ -1,6 +1,6 @@
 extends Node2D
 # LevelManager — Loads chapter data, spawns enemies, tracks objectives
-# v0.79 — Daily challenge modifier support
+# v0.80 — Ghost run recording + replay
 
 @onready var player = $Player
 @onready var skeleton_scene = preload("res://scenes/skeleton.tscn")
@@ -9,6 +9,7 @@ extends Node2D
 @onready var merchant_scene = preload("res://scenes/merchant_ally.tscn")
 @onready var gate_scene = preload("res://scenes/iron_gate.tscn")
 @onready var victory_screen_scene = preload("res://scenes/ui/victory_screen.tscn")
+@onready var ghost_runner_scene = preload("res://scenes/ghost_runner.tscn")
 
 var chapter_data: Dictionary = {}
 var enemies_remaining := 0
@@ -16,6 +17,8 @@ var dialogue_triggered := {}
 var pause_menu: Control
 var victory_screen: CanvasLayer
 var arena: Node2D  # ArenaBuilder tilemap
+var ghost_runner_instance: CharacterBody2D = null  # Ghost replay sprite
+var ghost_active := false  # Whether ghost is currently being shown
 
 func _ready():
 	# Load chapter 001 by default
@@ -159,6 +162,37 @@ func _setup_level():
 	
 	GameState.reset_chapter_state()
 	GameState.chapter_kills = 0
+	
+	# Start ghost recording for this chapter
+	GhostRecorder.start_recording()
+	
+	# Spawn ghost runner if one exists for this chapter
+	_spawn_ghost_runner()
+
+func _spawn_ghost_runner():
+	"""Spawn a ghost runner if ghost runs are enabled and a recording exists."""
+	# Clean up any existing ghost
+	if ghost_runner_instance != null and is_instance_valid(ghost_runner_instance):
+		ghost_runner_instance.queue_free()
+		ghost_runner_instance = null
+		ghost_active = false
+	
+	if not GameState.ghost_runs_enabled:
+		return
+	
+	var chapter_id := "act%02d_ch%03d" % [GameState.current_act, GameState.current_chapter]
+	if not GhostRecorder.has_ghost(chapter_id):
+		return
+	
+	var snapshots := GhostRecorder.load_ghost(chapter_id)
+	if snapshots.is_empty():
+		return
+	
+	ghost_runner_instance = ghost_runner_scene.instantiate()
+	add_child(ghost_runner_instance)
+	ghost_runner_instance.start_playback(snapshots)
+	ghost_active = true
+	print("[LevelManager] Ghost runner spawned for %s" % chapter_id)
 
 func _spawn_enemy(type: String, pos: Vector2, stats: Dictionary):
 	var inst: CharacterBody2D
@@ -354,6 +388,17 @@ func _finish_chapter_complete():
 	var reward_skill: String = rewards.get("unlock_skill", "")
 	
 	GameState.complete_current_chapter()
+	
+	# Stop ghost recording and save if best time
+	var recording := GhostRecorder.stop_recording()
+	var chapter_id_for_ghost := "act%02d_ch%03d" % [GameState.current_act, GameState.current_chapter]
+	var elapsed := (Time.get_ticks_msec() / 1000.0) - GameState.chapter_start_time
+	if recording.size() > 0:
+		var is_new_best := GhostRecorder.save_ghost(chapter_id_for_ghost, recording, elapsed)
+		if is_new_best:
+			# Check ghost hunter achievement: beat your ghost
+			if GhostRecorder.get_best_time(chapter_id_for_ghost) > 0:
+				GameState.check_ghost_achievement(chapter_id_for_ghost, elapsed)
 	
 	# Get stars earned this chapter
 	var chapter_id := "act%02d_ch%03d" % [GameState.current_act, GameState.current_chapter]
