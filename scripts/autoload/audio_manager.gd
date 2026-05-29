@@ -1,5 +1,5 @@
 extends Node
-# AudioManager — SFX pool + BGM crossfade
+# AudioManager — v0.82 — SFX pool + BGM crossfade + ghost/achievement/streak sounds + volume controls
 # Preloads all SFX; plays via AudioStreamPlayer pool
 # BGM layers via dedicated AudioStreamPlayers with crossfade
 
@@ -59,7 +59,12 @@ func _load_all_sfx():
 		"bow_fire",
 		"arrow_hit",
 		"arrow_impact",
-		"dodge_roll"
+		"dodge_roll",
+		"ghost_start",
+		"ghost_finish",
+		"daily_challenge",
+		"achievement_unlock",
+		"streak_claim"
 	]
 	for name in files:
 		var path = SFX_DIR + name + ".wav"
@@ -172,6 +177,27 @@ func _on_player_finished(player: AudioStreamPlayer):
 
 func set_volume(vol: float):
 	master_volume = clamp(vol, 0.0, 1.0)
+	var sfx_db = linear_to_db(sfx_volume * master_volume)
+	for p in sfx_pool:
+		p.volume_db = sfx_db
+	var bgm_db = linear_to_db(bgm_volume * master_volume)
+	for p in [bgm_player_a, bgm_player_b]:
+		if p.playing:
+			p.volume_db = bgm_db
+
+func set_master_volume(vol: float):
+	master_volume = clamp(vol, 0.0, 1.0)
+	_apply_volumes()
+
+func set_sfx_volume(vol: float):
+	sfx_volume = clamp(vol, 0.0, 1.0)
+	_apply_volumes()
+
+func set_bgm_volume(vol: float):
+	bgm_volume = clamp(vol, 0.0, 1.0)
+	_apply_volumes()
+
+func _apply_volumes():
 	var sfx_db = linear_to_db(sfx_volume * master_volume)
 	for p in sfx_pool:
 		p.volume_db = sfx_db

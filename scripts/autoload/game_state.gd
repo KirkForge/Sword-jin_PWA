@@ -1,6 +1,6 @@
 extends Node
 # GameState — Persistent save/load + progression tracking
-# v0.81 — ghost HUD indicator, time comparison
+# v0.82 — ghost SFX, achievement/daily/streak sounds, volume controls
 
 const SAVE_FILE := "user://swordjin_save.json"
 
@@ -408,7 +408,7 @@ func _ready():
 
 func save_game():
 	var data := {
-		"version": "2.1",
+		"version": "2.2",
 		"current_act": current_act,
 		"current_chapter": current_chapter,
 		"completed_chapters": completed_chapters,
@@ -895,6 +895,8 @@ func unlock_achievement(achievement_id: String) -> bool:
 	achievements_unlocked[achievement_id] = Time.get_unix_time_from_system()
 	var data: Dictionary = ACHIEVEMENTS[achievement_id]
 	print("🏆 ACHIEVEMENT UNLOCKED: %s %s — %s" % [data.icon, data.name, data.description])
+	# Play achievement unlock sound
+	AudioManager.play_sfx("achievement_unlock")
 	achievement_unlocked.emit(achievement_id, data)
 	save_game()
 	return true
@@ -1060,6 +1062,7 @@ func claim_daily_streak() -> Dictionary:
 	
 	streak_claimed_today = true
 	print("STREAK CLAIMED: Day %d → %s" % [daily_streak, rewards.get("label", "")])
+	AudioManager.play_sfx("streak_claim")
 	streak_claimed.emit(daily_streak, rewards)
 	
 	# Check streak achievements
@@ -1170,6 +1173,7 @@ func complete_daily_challenge() -> void:
 		daily_challenge_best_gold = bonus_gold
 	
 	print("DAILY CHALLENGE COMPLETE! +%dg bonus" % bonus_gold)
+	AudioManager.play_sfx("daily_challenge")
 	daily_challenge_completed.emit({"gold": bonus_gold})
 	
 	# Check achievements

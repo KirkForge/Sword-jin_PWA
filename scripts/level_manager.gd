@@ -1,5 +1,5 @@
 extends Node2D
-# LevelManager — Loads chapter data, spawns enemies, tracks objectives
+# LevelManager — v0.82 — Loads chapter data, spawns enemies, tracks objectives
 # v0.81 — Ghost HUD indicator, time comparison
 
 @onready var player = $Player

@@ -1,6 +1,6 @@
 extends CharacterBody2D
 # GhostRunner — Replays a recorded ghost path on top of the level
-# v0.81 — Ghost HUD indicator, time comparison, finish effects
+# v0.82 — Ghost SFX (start/finish sounds)
 
 const GHOST_ALPHA := 0.35
 const GHOST_COLOR_RIGHT := Color(0.3, 0.8, 1.0, GHOST_ALPHA)  # Cyan-ish ghost
@@ -45,6 +45,9 @@ func start_playback(recording: Array, best_time: float = 0.0):
 		var first = snapshots[0]
 		global_position = Vector2(first.x, first.y)
 		sprite.flip_h = not first.get("fr", true)
+	
+	# Play ghost appear sound
+	AudioManager.play_sfx("ghost_start")
 	
 	print("[GhostRunner] Playback started — %d snapshots, best time: %.1fs" % [snapshots.size(), best_time])
 
@@ -123,6 +126,8 @@ func _process(delta):
 	# Check if we've reached the end
 	if snapshot_index >= snapshots.size() - 1 and playback_time > snapshots[-1].t + 1.0:
 		ghost_finished = true
+		# Play ghost finish sound
+		AudioManager.play_sfx("ghost_finish")
 		# Fade out ghost
 		var tween = create_tween()
 		tween.tween_property(self, "modulate:a", 0.0, 0.5)
