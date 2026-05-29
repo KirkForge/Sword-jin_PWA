@@ -152,6 +152,31 @@ layout_mode = 2
 [node name="Sep2" type="HSeparator" parent="CenterContainer/VBoxContainer"]
 layout_mode = 2
 
+[node name="PlayFabSection" type="HBoxContainer" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Label" type="Label" parent="CenterContainer/VBoxContainer/PlayFabSection"]
+layout_mode = 2
+custom_minimum_size = Vector2(120, 0)
+theme_override_font_sizes/font_size = 13
+text = "🌐 Title ID"
+
+[node name="LineEdit" type="LineEdit" parent="CenterContainer/VBoxContainer/PlayFabSection"]
+layout_mode = 2
+custom_minimum_size = Vector2(200, 0)
+placeholder_text = "e.g. ABC12"
+max_length = 8
+
+[node name="PlayFabStatus" type="Label" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "Not connected"
+horizontal_alignment = 1
+
+[node name="Sep3" type="HSeparator" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+
 [node name="TextSpeed" type="HBoxContainer" parent="CenterContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_constants/separation = 8

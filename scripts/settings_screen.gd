@@ -1,5 +1,5 @@
 extends Control
-## Settings screen — volume, shake, damage numbers, text speed.
+## Settings screen — volume, shake, damage numbers, text speed, PlayFab.
 ## Toggled from pause menu or title screen. Saved to GameState.settings.
 
 @onready var master_slider = $VBoxContainer/MasterVolume/HSlider
@@ -10,6 +10,8 @@ extends Control
 @onready var dmg_check = $VBoxContainer/DamageNumbers/CheckButton
 @onready var autoaim_check = $VBoxContainer/AutoAim/CheckButton
 @onready var text_speed_slider = $VBoxContainer/TextSpeed/HSlider
+@onready var playfab_input = $VBoxContainer/PlayFabSection/LineEdit
+@onready var playfab_status = $VBoxContainer/PlayFabStatus
 @onready var close_btn = $CloseButton
 
 func _ready():
@@ -24,6 +26,22 @@ func _ready():
 	dmg_check.toggled.connect(_on_dmg_toggled)
 	autoaim_check.toggled.connect(_on_autoaim_toggled)
 	text_speed_slider.value_changed.connect(_on_text_speed_changed)
+	
+	if playfab_input:
+		playfab_input.text_submitted.connect(_on_playfab_submitted)
+		playfab_input.text_changed.connect(_on_playfab_changed)
+	
+	# Connect PlayFab signals
+	if PlayFab.login_succeeded.is_connected(_on_playfab_login_ok):
+		pass
+	else:
+		PlayFab.login_succeeded.connect(_on_playfab_login_ok)
+	if PlayFab.login_failed.is_connected(_on_playfab_login_fail):
+		pass
+	else:
+		PlayFab.login_failed.connect(_on_playfab_login_fail)
+	
+	_update_playfab_status()
 
 func _load_from_settings():
 	var s = GameState.settings
@@ -35,6 +53,11 @@ func _load_from_settings():
 	dmg_check.button_pressed = s.show_damage_numbers
 	autoaim_check.button_pressed = s.auto_aim
 	text_speed_slider.value = s.text_speed
+	
+	# Load PlayFab title ID
+	if playfab_input:
+		if PlayFab.TITLE_ID != "":
+			playfab_input.text = PlayFab.TITLE_ID
 
 func _save_and_apply():
 	GameState.save_game()
@@ -71,6 +94,39 @@ func _on_autoaim_toggled(on: bool):
 func _on_text_speed_changed(value: float):
 	GameState.settings["text_speed"] = value
 	_save_and_apply()
+
+func _on_playfab_changed(text: String):
+	"""Live preview — no action until submitted."""
+	pass
+
+func _on_playfab_submitted(text: String):
+	"""Set PlayFab title ID when user presses Enter."""
+	var trimmed := text.strip_edges().to_upper()
+	if trimmed.length() >= 3:
+		playfab_status.text = "Connecting..."
+		playfab_status.add_theme_color_override("font_color", Color.YELLOW)
+		PlayFab.set_title_id(trimmed)
+	else:
+		playfab_status.text = "ID too short (min 3 chars)"
+		playfab_status.add_theme_color_override("font_color", Color.RED)
+
+func _update_playfab_status():
+	if playfab_status:
+		if PlayFab.is_logged_in:
+			playfab_status.text = "✅ Connected (ID: %s)" % PlayFab.playfab_id.left(8)
+			playfab_status.add_theme_color_override("font_color", Color(0.3, 1.0, 0.3))
+		elif PlayFab.is_configured():
+			playfab_status.text = "⏳ Logging in..."
+			playfab_status.add_theme_color_override("font_color", Color.YELLOW)
+		else:
+			playfab_status.text = "Not connected — enter Title ID above"
+			playfab_status.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
+
+func _on_playfab_login_ok(_ticket: String, _id: String):
+	_update_playfab_status()
+
+func _on_playfab_login_fail(_error: String):
+	_update_playfab_status()
 
 func _on_close():
 	queue_free()

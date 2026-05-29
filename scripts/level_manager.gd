@@ -655,6 +655,10 @@ func _finish_chapter_complete():
 			if GhostRecorder.get_best_time(chapter_id_for_ghost) > 0:
 				GameState.check_ghost_achievement(chapter_id_for_ghost, elapsed)
 	
+	# Submit to PlayFab online leaderboard (if configured)
+	if PlayFab.is_configured():
+		PlayFab.submit_chapter_time(chapter_id_for_ghost, elapsed)
+	
 	# Get stars earned this chapter
 	var chapter_id := "act%02d_ch%03d" % [GameState.current_act, GameState.current_chapter]
 	var stars: int = GameState.get_stars(chapter_id)
