@@ -1,6 +1,6 @@
 extends CanvasLayer
 # VictoryScreen — Chapter complete overlay
-# v0.75: Loot drops + rarity display + collection progress
+# v0.81: Ghost time comparison on victory screen
 
 signal next_chapter_pressed
 signal chapter_select_pressed
@@ -13,6 +13,7 @@ signal title_screen_pressed
 @onready var gold_label = $Panel/VBoxContainer/GoldLabel
 @onready var reward_label = $Panel/VBoxContainer/RewardLabel
 @onready var loot_label = $Panel/VBoxContainer/LootLabel
+@onready var ghost_label = $Panel/VBoxContainer/GhostLabel
 @onready var continue_btn = $Panel/VBoxContainer/HBoxContainer/ContinueButton
 @onready var select_btn = $Panel/VBoxContainer/HBoxContainer/SelectButton
 @onready var title_btn = $Panel/VBoxContainer/HBoxContainer/TitleButton
@@ -28,7 +29,7 @@ func _ready():
 	title_btn.pressed.connect(_on_title)
 	title_btn.visible = false  # Hidden by default, shown for final chapter
 
-func show_victory(chapter_title: String, xp_gained: int, gold_gained: int = 0, reward_weapon: String = "", reward_skill: String = "", stars: int = 1):
+func show_victory(chapter_title: String, xp_gained: int, gold_gained: int = 0, reward_weapon: String = "", reward_skill: String = "", stars: int = 1, ghost_time: float = -1.0, completion_time: float = 0.0):
 	# Pause the game
 	get_tree().paused = true
 	
@@ -85,6 +86,25 @@ func show_victory(chapter_title: String, xp_gained: int, gold_gained: int = 0, r
 		else:
 			loot_label.text = "Loot: —"
 			loot_label.visible = true
+	
+	# Ghost time comparison
+	if ghost_label:
+		if ghost_time > 0 and completion_time > 0:
+			var time_diff := completion_time - ghost_time
+			if time_diff < 0:
+				# Player beat the ghost!
+				ghost_label.text = "👻 GHOST: %.1fs | You beat it by %.1fs!" % [ghost_time, absf(time_diff)]
+				ghost_label.add_theme_color_override("font_color", Color(0.3, 1.0, 0.3))  # Green
+			elif time_diff < 0.5:
+				ghost_label.text = "👻 GHOST: %.1fs | Almost tied!" % ghost_time
+				ghost_label.add_theme_color_override("font_color", Color(1.0, 0.843, 0.0))  # Gold
+			else:
+				ghost_label.text = "👻 GHOST: %.1fs | Ghost was %.1fs faster" % [ghost_time, time_diff]
+				ghost_label.add_theme_color_override("font_color", Color(0.3, 0.8, 1.0))  # Cyan
+			ghost_label.visible = true
+		else:
+			ghost_label.text = ""
+			ghost_label.visible = false
 	
 	# Show / hide continue based on whether there's a next chapter
 	continue_btn.visible = _has_next_chapter

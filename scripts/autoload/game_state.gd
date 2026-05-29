@@ -1,6 +1,6 @@
 extends Node
 # GameState — Persistent save/load + progression tracking
-# v0.80 — ghost runs + local leaderboard
+# v0.81 — ghost HUD indicator, time comparison
 
 const SAVE_FILE := "user://swordjin_save.json"
 

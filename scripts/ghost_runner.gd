@@ -1,9 +1,9 @@
 extends CharacterBody2D
 # GhostRunner — Replays a recorded ghost path on top of the level
-# v0.80 — Semi-transparent sprite that follows saved snapshots
+# v0.81 — Ghost HUD indicator, time comparison, finish effects
 
 const GHOST_ALPHA := 0.35
-const GOST_COLOR_RIGHT := Color(0.3, 0.8, 1.0, GHOST_ALPHA)  # Cyan-ish ghost
+const GHOST_COLOR_RIGHT := Color(0.3, 0.8, 1.0, GHOST_ALPHA)  # Cyan-ish ghost
 const GHOST_COLOR_LEFT := Color(0.3, 0.8, 1.0, GHOST_ALPHA)
 
 var snapshots: Array = []
@@ -11,6 +11,7 @@ var playback_time := 0.0
 var is_playing := false
 var snapshot_index := 0
 var ghost_finished := false
+var ghost_best_time := 0.0  # Best time for this chapter (from ghost file)
 
 @onready var sprite = $AnimatedSprite2D
 
@@ -25,7 +26,7 @@ func _ready():
 			child.set_deferred("disabled", true)
 	visible = false
 
-func start_playback(recording: Array):
+func start_playback(recording: Array, best_time: float = 0.0):
 	"""Start playing back a ghost recording."""
 	if recording.is_empty():
 		queue_free()
@@ -36,6 +37,7 @@ func start_playback(recording: Array):
 	playback_time = 0.0
 	is_playing = true
 	ghost_finished = false
+	ghost_best_time = best_time
 	visible = true
 	
 	# Set initial position
@@ -44,12 +46,26 @@ func start_playback(recording: Array):
 		global_position = Vector2(first.x, first.y)
 		sprite.flip_h = not first.get("fr", true)
 	
-	print("[GhostRunner] Playback started — %d snapshots" % snapshots.size())
+	print("[GhostRunner] Playback started — %d snapshots, best time: %.1fs" % [snapshots.size(), best_time])
 
 func stop_playback():
 	"""Stop the ghost playback."""
 	is_playing = false
 	visible = false
+
+func get_progress_ratio() -> float:
+	"""How far through the ghost recording we are (0.0 to 1.0)."""
+	if snapshots.is_empty():
+		return 0.0
+	return float(snapshot_index) / float(snapshots.size() - 1)
+
+func get_elapsed_time() -> float:
+	"""Current playback time of the ghost."""
+	return playback_time
+
+func is_ghost_done() -> bool:
+	"""Whether the ghost has finished its run."""
+	return ghost_finished
 
 func _process(delta):
 	if not is_playing or snapshots.is_empty():

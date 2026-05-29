@@ -72,6 +72,14 @@ horizontal_alignment = 1
 vertical_alignment = 1
 visible = false
 
+[node name="GhostLabel" type="Label" parent="Panel/VBoxContainer"]
+theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(0.3, 0.8, 1, 1)
+text = ""
+horizontal_alignment = 1
+vertical_alignment = 1
+visible = false
+
 [node name="Spacer" type="Control" parent="Panel/VBoxContainer"]
 custom_minimum_size = Vector2(0, 20)
 layout_mode = 2

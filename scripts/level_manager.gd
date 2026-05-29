@@ -1,6 +1,6 @@
 extends Node2D
 # LevelManager — Loads chapter data, spawns enemies, tracks objectives
-# v0.80 — Ghost run recording + replay
+# v0.81 — Ghost HUD indicator, time comparison
 
 @onready var player = $Player
 @onready var skeleton_scene = preload("res://scenes/skeleton.tscn")
@@ -19,6 +19,7 @@ var victory_screen: CanvasLayer
 var arena: Node2D  # ArenaBuilder tilemap
 var ghost_runner_instance: CharacterBody2D = null  # Ghost replay sprite
 var ghost_active := false  # Whether ghost is currently being shown
+var ghost_best_time := 0.0  # Best time for current chapter (from ghost file)
 
 func _ready():
 	# Load chapter 001 by default
@@ -188,11 +189,58 @@ func _spawn_ghost_runner():
 	if snapshots.is_empty():
 		return
 	
+	ghost_best_time = GhostRecorder.get_best_time(chapter_id)
+	
 	ghost_runner_instance = ghost_runner_scene.instantiate()
 	add_child(ghost_runner_instance)
-	ghost_runner_instance.start_playback(snapshots)
+	ghost_runner_instance.start_playback(snapshots, ghost_best_time)
 	ghost_active = true
-	print("[LevelManager] Ghost runner spawned for %s" % chapter_id)
+	
+	# Show ghost HUD indicator
+	_update_ghost_hud()
+	print("[LevelManager] Ghost runner spawned for %s (%.1fs best)" % [chapter_id, ghost_best_time])
+
+func _update_ghost_hud():
+	"""Update the ghost HUD indicator showing time comparison."""
+	var ghost_hud = get_node_or_null("GhostHUD")
+	if ghost_hud == null:
+		return
+	
+	if not ghost_active or ghost_runner_instance == null or not is_instance_valid(ghost_runner_instance):
+		ghost_hud.text = ""
+		return
+	
+	# Calculate time comparison: player elapsed vs ghost elapsed
+	var player_time = (Time.get_ticks_msec() / 1000.0) - GameState.chapter_start_time
+	var ghost_time = ghost_runner_instance.get_elapsed_time()
+	var ghost_progress = ghost_runner_instance.get_progress_ratio()
+	
+	# Compare player progress (based on position) to ghost progress
+	# Show how far ahead/behind the ghost is
+	var time_diff = player_time - ghost_time
+	
+	var progress_pct = int(ghost_progress * 100)
+	
+	if ghost_runner_instance.is_ghost_done():
+		# Ghost finished — show final time comparison
+		var final_diff = player_time - ghost_best_time
+		if final_diff < 0:
+			ghost_hud.text = "👻 GHOST DONE | You're AHEAD by %.1fs!" % absf(final_diff)
+			ghost_hud.add_theme_color_override("font_color", Color(0.3, 1.0, 0.3))  # Green
+		else:
+			ghost_hud.text = "👻 GHOST DONE | You're BEHIND by %.1fs" % final_diff
+			ghost_hud.add_theme_color_override("font_color", Color(1.0, 0.3, 0.3))  # Red
+	else:
+		# Ghost still running — show live comparison
+		if time_diff < -0.5:
+			ghost_hud.text = "👻 GHOST RUN | Ahead %.1fs" % absf(time_diff)
+			ghost_hud.add_theme_color_override("font_color", Color(0.3, 1.0, 0.3))  # Green
+		elif time_diff > 0.5:
+			ghost_hud.text = "👻 GHOST RUN | Behind %.1fs" % time_diff
+			ghost_hud.add_theme_color_override("font_color", Color(1.0, 0.5, 0.3))  # Orange
+		else:
+			ghost_hud.text = "👻 GHOST RUN | Neck and neck!"
+			ghost_hud.add_theme_color_override("font_color", Color(0.3, 0.8, 1.0))  # Cyan
 
 func _spawn_enemy(type: String, pos: Vector2, stats: Dictionary):
 	var inst: CharacterBody2D
@@ -324,6 +372,10 @@ func _process(_delta):
 	if GameState.is_daily_challenge_run:
 		_process_daily_modifiers(_delta)
 	
+	# Update ghost HUD
+	if ghost_active:
+		_update_ghost_hud()
+	
 	if chapter_data.get("type", "combat") == "combat":
 		var live_enemies := 0
 		for child in get_children():
@@ -393,6 +445,14 @@ func _finish_chapter_complete():
 	var recording := GhostRecorder.stop_recording()
 	var chapter_id_for_ghost := "act%02d_ch%03d" % [GameState.current_act, GameState.current_chapter]
 	var elapsed := (Time.get_ticks_msec() / 1000.0) - GameState.chapter_start_time
+	
+	# Capture ghost data BEFORE clearing state
+	var ghost_time_for_victory := ghost_best_time if ghost_active else -1.0
+	ghost_active = false
+	var ghost_hud = get_node_or_null("GhostHUD")
+	if ghost_hud:
+		ghost_hud.text = ""
+	
 	if recording.size() > 0:
 		var is_new_best := GhostRecorder.save_ghost(chapter_id_for_ghost, recording, elapsed)
 		if is_new_best:
@@ -417,7 +477,9 @@ func _finish_chapter_complete():
 		gold_gained,
 		reward_weapon,
 		reward_skill,
-		stars
+		stars,
+		ghost_time_for_victory,
+		elapsed
 	)
 	
 	victory_screen.next_chapter_pressed.connect(_on_victory_next)
