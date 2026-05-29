@@ -60,3 +60,14 @@ coverage/
 htmlcov/
 .coverage
 coverage.xml
+
+# --- Security baseline (do not remove) ---
+token.json
+token_*.json
+*token*.json
+*.pickle
+client_secret*.json
+credentials.json
+*.db-shm
+*.db-wal
+*.sqlite
