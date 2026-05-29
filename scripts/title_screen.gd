@@ -8,6 +8,7 @@ extends Control
 @onready var bestiary_btn = $CenterContainer/VBoxContainer/BestiaryButton
 @onready var achievement_btn = $CenterContainer/VBoxContainer/AchievementButton
 @onready var leaderboard_btn = $CenterContainer/VBoxContainer/LeaderboardButton
+@onready var settings_btn = $CenterContainer/VBoxContainer/SettingsButton
 @onready var stars_label = $CenterContainer/VBoxContainer/StarsLabel
 @onready var collection_label = $CenterContainer/VBoxContainer/CollectionLabel
 @onready var bestiary_label = $CenterContainer/VBoxContainer/BestiaryLabel
@@ -83,6 +84,11 @@ func _ready():
 			streak_label.add_theme_color_override("font_color", Color(1.0, 0.6, 0.2) if si.streak >= 3 else Color(0.7, 0.7, 0.7))
 		else:
 			streak_label.text = ""
+	
+	# Show rested XP bonus
+	var rested_info := GameState.get_rested_xp_info()
+	if rested_info.has_bonus:
+		stars_label.text = stars_label.text + "  😴 +%d" % rested_info.rested_xp if stars_label.text != "" else "😴 +%d Rested XP" % rested_info.rested_xp
 	
 	# Show streak claim button
 	if streak_claim_btn:
@@ -233,3 +239,16 @@ func _on_ghost_run_start(chapter_id: String):
 	AudioManager.play_sfx("ui_click")
 	AudioManager.stop_bgm(0.5)
 	get_tree().change_scene_to_file("res://scenes/main.tscn")
+
+var settings_screen: Control = null
+
+func _on_settings_pressed():
+	AudioManager.play_sfx("ui_click")
+	if settings_screen == null:
+		settings_screen = load("res://scenes/ui/settings_screen.tscn").instantiate()
+		settings_screen.close_btn.pressed.connect(_on_settings_closed)
+		add_child(settings_screen)
+	settings_screen.visible = true
+
+func _on_settings_closed():
+	start_btn.grab_focus()

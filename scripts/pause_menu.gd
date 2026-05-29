@@ -1,16 +1,20 @@
 extends Control
 # PauseMenu — Runtime pause overlay with resume/restart/quit
-# Instantiated by LevelManager, creates its own UI nodes.
+# v0.83 — Settings screen, inventory access, rested XP display
 
 var is_paused := false
 var is_changing_scene := false
 var bestiary_screen: CanvasLayer = null
+var settings_screen: Control = null
+var inventory_screen: Control = null
 
 # UI refs
 var bg: ColorRect
 var vbox: VBoxContainer
 var resume_btn: Button
 var restart_btn: Button
+var settings_btn: Button
+var inventory_btn: Button
 var mute_btn: Button
 var bestiar_btn: Button
 var quit_btn: Button
@@ -70,13 +74,21 @@ func _build_ui():
 	restart_btn = _make_btn("↻  Restart Chapter", "_on_restart")
 	vbox.add_child(restart_btn)
 	
+	# Settings
+	settings_btn = _make_btn("⚙  Settings", "_on_settings")
+	vbox.add_child(settings_btn)
+	
+	# Inventory
+	inventory_btn = _make_btn("🎒  Inventory", "_on_inventory")
+	vbox.add_child(inventory_btn)
+	
 	# Mute toggle
 	mute_btn = _make_btn("🔇  Mute", "_on_mute")
 	vbox.add_child(mute_btn)
 	
 	# Bestiary
 	bestiar_btn = _make_btn("📖  Bestiary", "_on_bestiary")
-	vbox.add_child(bestiary_btn)
+	vbox.add_child(bestiar_btn)
 	
 	# Quit to title
 	quit_btn = _make_btn("✕  Quit to Title", "_on_quit")
@@ -128,6 +140,34 @@ func _on_restart():
 	AudioManager.play_sfx("ui_click")
 	get_tree().reload_current_scene()
 
+func _on_settings():
+	AudioManager.play_sfx("ui_click")
+	if settings_screen == null:
+		settings_screen = load("res://scenes/ui/settings_screen.tscn").instantiate()
+		settings_screen.close_btn.pressed.connect(_on_settings_closed)
+		add_child(settings_screen)
+	settings_screen.visible = true
+
+func _on_settings_closed():
+	if settings_screen:
+		settings_screen.visible = false
+	resume_btn.grab_focus()
+
+func _on_inventory():
+	AudioManager.play_sfx("ui_click")
+	if inventory_screen == null:
+		inventory_screen = load("res://scenes/ui/inventory_screen.tscn").instantiate()
+		inventory_screen.close_btn.pressed.connect(_on_inventory_closed)
+		add_child(inventory_screen)
+	else:
+		inventory_screen._refresh()
+	inventory_screen.visible = true
+
+func _on_inventory_closed():
+	if inventory_screen:
+		inventory_screen.visible = false
+	resume_btn.grab_focus()
+
 func _on_mute():
 	AudioManager.set_volume(0.0 if AudioManager.master_volume > 0.0 else 0.8)
 	_update_mute_label()
@@ -160,5 +200,14 @@ func _input(event):
 	if not is_paused:
 		return
 	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
+		# If settings/inventory is open, close it first instead of resuming
+		if settings_screen and settings_screen.visible:
+			_on_settings_closed()
+			get_viewport().set_input_as_handled()
+			return
+		if inventory_screen and inventory_screen.visible:
+			_on_inventory_closed()
+			get_viewport().set_input_as_handled()
+			return
 		_resume()
 		get_viewport().set_input_as_handled()

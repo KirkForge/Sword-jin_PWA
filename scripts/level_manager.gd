@@ -439,6 +439,10 @@ func _finish_chapter_complete():
 	var reward_weapon: String = rewards.get("unlock_weapon", "")
 	var reward_skill: String = rewards.get("unlock_skill", "")
 	
+	# Capture rested XP BEFORE completing (it gets consumed in add_xp)
+	var rested_xp_before := GameState.rested_xp
+	var rested_bonus := mini(rested_xp_before, xp_gained)
+	
 	GameState.complete_current_chapter()
 	
 	# Stop ghost recording and save if best time
@@ -479,7 +483,8 @@ func _finish_chapter_complete():
 		reward_skill,
 		stars,
 		ghost_time_for_victory,
-		elapsed
+		elapsed,
+		rested_bonus
 	)
 	
 	victory_screen.next_chapter_pressed.connect(_on_victory_next)

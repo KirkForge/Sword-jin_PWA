@@ -87,6 +87,12 @@ custom_minimum_size = Vector2(160, 40)
 focus_mode = 2
 text = "👻  Leaderboard"
 
+[node name="SettingsButton" type="Button" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(160, 40)
+focus_mode = 2
+text = "⚙  Settings"
+
 [node name="Spacer2" type="Control" parent="CenterContainer/VBoxContainer"]
 custom_minimum_size = Vector2(0, 24)
 layout_mode = 2
@@ -94,7 +100,7 @@ layout_mode = 2
 [node name="VersionLabel" type="Label" parent="CenterContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 10
-text = "v0.80"
+text = "v0.83"
 horizontal_alignment = 1
 self_modulate = Color(0.4, 0.4, 0.4, 1)
 
@@ -150,5 +156,6 @@ visible = false
 [connection signal="pressed" from="CenterContainer/VBoxContainer/BestiaryButton" to="." method="_on_bestiary_pressed"]
 [connection signal="pressed" from="CenterContainer/VBoxContainer/AchievementButton" to="." method="_on_achievement_pressed"]
 [connection signal="pressed" from="CenterContainer/VBoxContainer/LeaderboardButton" to="." method="_on_leaderboard_pressed"]
+[connection signal="pressed" from="CenterContainer/VBoxContainer/SettingsButton" to="." method="_on_settings_pressed"]
 [connection signal="pressed" from="CenterContainer/VBoxContainer/StreakClaimButton" to="." method="_on_streak_claim_pressed"]
 [connection signal="pressed" from="CenterContainer/VBoxContainer/DailyChallengeButton" to="." method="_on_daily_challenge_pressed"]

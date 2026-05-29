@@ -1,0 +1,191 @@
+[gd_scene load_steps=2 format=3 uid="uid://b1settings001"]
+
+[ext_resource type="Script" path="res://scripts/settings_screen.gd" id="1_settings"]
+
+[node name="SettingsScreen" type="Control"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_settings")
+
+[node name="Background" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.05, 0.06, 0.08, 0.9)
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="TitleLabel" type="Label" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "⚙  Settings"
+horizontal_alignment = 1
+
+[node name="Spacer" type="Control" parent="CenterContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 8)
+layout_mode = 2
+
+[node name="MasterVolume" type="HBoxContainer" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Label" type="Label" parent="CenterContainer/VBoxContainer/MasterVolume"]
+layout_mode = 2
+custom_minimum_size = Vector2(120, 0)
+theme_override_font_sizes/font_size = 13
+text = "🔊 Master"
+
+[node name="HSlider" type="HSlider" parent="CenterContainer/VBoxContainer/MasterVolume"]
+layout_mode = 2
+custom_minimum_size = Vector2(200, 0)
+min_value = 0.0
+max_value = 1.0
+step = 0.05
+value = 1.0
+
+[node name="SFXVolume" type="HBoxContainer" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Label" type="Label" parent="CenterContainer/VBoxContainer/SFXVolume"]
+layout_mode = 2
+custom_minimum_size = Vector2(120, 0)
+theme_override_font_sizes/font_size = 13
+text = "⚔  SFX"
+
+[node name="HSlider" type="HSlider" parent="CenterContainer/VBoxContainer/SFXVolume"]
+layout_mode = 2
+custom_minimum_size = Vector2(200, 0)
+min_value = 0.0
+max_value = 1.0
+step = 0.05
+value = 1.0
+
+[node name="BGMVolume" type="HBoxContainer" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Label" type="Label" parent="CenterContainer/VBoxContainer/BGMVolume"]
+layout_mode = 2
+custom_minimum_size = Vector2(120, 0)
+theme_override_font_sizes/font_size = 13
+text = "🎵  Music"
+
+[node name="HSlider" type="HSlider" parent="CenterContainer/VBoxContainer/BGMVolume"]
+layout_mode = 2
+custom_minimum_size = Vector2(200, 0)
+min_value = 0.0
+max_value = 1.0
+step = 0.05
+value = 0.7
+
+[node name="Sep1" type="HSeparator" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="ScreenShake" type="HBoxContainer" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Label" type="Label" parent="CenterContainer/VBoxContainer/ScreenShake"]
+layout_mode = 2
+custom_minimum_size = Vector2(120, 0)
+theme_override_font_sizes/font_size = 13
+text = "📳 Screen Shake"
+
+[node name="CheckButton" type="CheckButton" parent="CenterContainer/VBoxContainer/ScreenShake"]
+layout_mode = 2
+
+[node name="HitStop" type="HBoxContainer" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Label" type="Label" parent="CenterContainer/VBoxContainer/HitStop"]
+layout_mode = 2
+custom_minimum_size = Vector2(120, 0)
+theme_override_font_sizes/font_size = 13
+text = "⏸  Hit Stop"
+
+[node name="CheckButton" type="CheckButton" parent="CenterContainer/VBoxContainer/HitStop"]
+layout_mode = 2
+
+[node name="DamageNumbers" type="HBoxContainer" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Label" type="Label" parent="CenterContainer/VBoxContainer/DamageNumbers"]
+layout_mode = 2
+custom_minimum_size = Vector2(120, 0)
+theme_override_font_sizes/font_size = 13
+text = "💥 Damage Numbers"
+
+[node name="CheckButton" type="CheckButton" parent="CenterContainer/VBoxContainer/DamageNumbers"]
+layout_mode = 2
+
+[node name="AutoAim" type="HBoxContainer" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Label" type="Label" parent="CenterContainer/VBoxContainer/AutoAim"]
+layout_mode = 2
+custom_minimum_size = Vector2(120, 0)
+theme_override_font_sizes/font_size = 13
+text = "🎯 Auto Aim"
+
+[node name="CheckButton" type="CheckButton" parent="CenterContainer/VBoxContainer/AutoAim"]
+layout_mode = 2
+
+[node name="Sep2" type="HSeparator" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="TextSpeed" type="HBoxContainer" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Label" type="Label" parent="CenterContainer/VBoxContainer/TextSpeed"]
+layout_mode = 2
+custom_minimum_size = Vector2(120, 0)
+theme_override_font_sizes/font_size = 13
+text = "💬 Text Speed"
+
+[node name="HSlider" type="HSlider" parent="CenterContainer/VBoxContainer/TextSpeed"]
+layout_mode = 2
+custom_minimum_size = Vector2(200, 0)
+min_value = 0.5
+max_value = 2.0
+step = 0.1
+value = 1.0
+
+[node name="Spacer2" type="Control" parent="CenterContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 12)
+layout_mode = 2
+
+[node name="CloseButton" type="Button" parent="."]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -80.0
+offset_top = -48.0
+offset_right = 80.0
+offset_bottom = -8.0
+grow_horizontal = 2
+grow_vertical = 2
+custom_minimum_size = Vector2(160, 36)
+theme_override_font_sizes/font_size = 14
+text = "✕  Close"

@@ -29,7 +29,7 @@ func _ready():
 	title_btn.pressed.connect(_on_title)
 	title_btn.visible = false  # Hidden by default, shown for final chapter
 
-func show_victory(chapter_title: String, xp_gained: int, gold_gained: int = 0, reward_weapon: String = "", reward_skill: String = "", stars: int = 1, ghost_time: float = -1.0, completion_time: float = 0.0):
+func show_victory(chapter_title: String, xp_gained: int, gold_gained: int = 0, reward_weapon: String = "", reward_skill: String = "", stars: int = 1, ghost_time: float = -1.0, completion_time: float = 0.0, rested_bonus: int = 0):
 	# Pause the game
 	get_tree().paused = true
 	
@@ -45,7 +45,10 @@ func show_victory(chapter_title: String, xp_gained: int, gold_gained: int = 0, r
 	stars_label.visible = true
 	
 	# XP line
-	xp_label.text = "XP Gained: " + str(xp_gained)
+	if rested_bonus > 0:
+		xp_label.text = "XP Gained: %d (+%d 😴 rested)" % [xp_gained + rested_bonus, rested_bonus]
+	else:
+		xp_label.text = "XP Gained: " + str(xp_gained)
 	
 	# Gold line (yellow #FFD700)
 	gold_label.text = "Gold Earned: " + str(gold_gained)

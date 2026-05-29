@@ -401,14 +401,24 @@ var chapter_deaths: int = 0
 # Ghost run settings (persisted)
 var ghost_runs_enabled: bool = true  # Whether to show ghost replays
 
+# ─── Rested XP System ──────────────────────────────────────────────────────
+# Offline time accumulates bonus XP: 1 rested XP per 2 minutes offline
+# Max cap: 1000 rested XP (≈33 hours offline)
+# On next chapter completion, rested XP is added as bonus XP (2× multiplier)
+const RESTED_XP_RATE := 0.5  # rested XP per minute offline
+const RESTED_XP_CAP := 1000
+var rested_xp: int = 0  # Accumulated rested bonus XP
+var last_logout_time: float = 0.0  # Unix timestamp of last save/close
+
 func _ready():
 	load_game()
 	_check_daily_streak()
-	print("GameState loaded — Act %d, Ch %d, Level %d, Weapon: %s, Skills: %s, Streak: %d" % [current_act, current_chapter, player_level, equipped_weapon, str(equipped_skills), daily_streak])
+	_calculate_rested_xp()
+	print("GameState loaded — Act %d, Ch %d, Level %d, Weapon: %s, Skills: %s, Streak: %d, Rested XP: %d" % [current_act, current_chapter, player_level, equipped_weapon, str(equipped_skills), daily_streak, rested_xp])
 
 func save_game():
 	var data := {
-		"version": "2.2",
+		"version": "2.3",
 		"current_act": current_act,
 		"current_chapter": current_chapter,
 		"completed_chapters": completed_chapters,
@@ -435,6 +445,8 @@ func save_game():
 		"daily_challenge_best_gold": daily_challenge_best_gold,
 		"daily_challenge_total_completed": daily_challenge_total_completed,
 		"ghost_runs_enabled": ghost_runs_enabled,
+		"rested_xp": rested_xp,
+		"last_logout_time": Time.get_unix_time_from_system(),
 	}
 	
 	var file := FileAccess.open(SAVE_FILE, FileAccess.WRITE)
@@ -491,6 +503,8 @@ func load_game():
 		daily_challenge_best_gold = data.get("daily_challenge_best_gold", 0)
 		daily_challenge_total_completed = data.get("daily_challenge_total_completed", 0)
 		ghost_runs_enabled = data.get("ghost_runs_enabled", true)
+		rested_xp = data.get("rested_xp", 0)
+		last_logout_time = data.get("last_logout_time", 0.0)
 		settings = data.get("settings", {
 			"master_volume": 1.0, "sfx_volume": 1.0, "bgm_volume": 0.7,
 			"screen_shake": true, "hit_stop": true, "show_damage_numbers": true,
@@ -578,7 +592,15 @@ func get_level_xp_requirement(level: int) -> int:
 	return level * level * 100
 
 func add_xp(amount: int):
-	player_xp += amount
+	var actual_xp := amount
+	# Consume rested XP bonus: double the base XP up to rested XP cap
+	if rested_xp > 0:
+		var bonus := mini(rested_xp, amount)  # Match 1:1 with base XP
+		actual_xp += bonus
+		rested_xp -= bonus
+		print("RESTED XP BONUS: +%d XP (rested remaining: %d)" % [bonus, rested_xp])
+	
+	player_xp += actual_xp
 	var required := get_level_xp_requirement(player_level)
 	while player_xp >= required:
 		player_xp -= required
@@ -586,6 +608,7 @@ func add_xp(amount: int):
 		saved_max_health += 10
 		saved_health = saved_max_health
 		print("LEVEL UP! Now level %d — HP %d" % [player_level, saved_max_health])
+		required = get_level_xp_requirement(player_level)
 
 func is_chapter_unlocked(act: int, chapter: int) -> bool:
 	var id := "act%02d_ch%03d" % [act, chapter]
@@ -1116,6 +1139,41 @@ func _is_next_day(date1: String, date2: String) -> bool:
 		"hour": 12, "minute": 0, "second": 0
 	})
 	return (epoch2 - epoch1) <= 86400 and epoch2 > epoch1
+
+# ─── Rested XP System ───────────────────────────────────────────────────────
+
+func _calculate_rested_xp() -> void:
+	"""Calculate rested XP accumulated since last logout."""
+	if last_logout_time <= 0:
+		# First time or no prior logout — no rested XP
+		last_logout_time = Time.get_unix_time_from_system()
+		return
+	
+	var now := Time.get_unix_time_from_system()
+	var offline_minutes := (now - last_logout_time) / 60.0
+	
+	if offline_minutes < 1.0:
+		return  # Less than 1 minute offline — no bonus
+	
+	var earned := int(offline_minutes * RESTED_XP_RATE)
+	rested_xp = mini(rested_xp + earned, RESTED_XP_CAP)
+	last_logout_time = now
+	
+	if earned > 0:
+		var hours := offline_minutes / 60.0
+		print("RESTED XP: Away %.1fh → +%d rested XP (total: %d/%d)" % [hours, earned, rested_xp, RESTED_XP_CAP])
+
+func get_rested_xp_info() -> Dictionary:
+	"""Get rested XP status for UI display."""
+	var is_capped := rested_xp >= RESTED_XP_CAP
+	var pct := (rested_xp * 100.0 / RESTED_XP_CAP) if RESTED_XP_CAP > 0 else 0.0
+	return {
+		"rested_xp": rested_xp,
+		"cap": RESTED_XP_CAP,
+		"percentage": pct,
+		"is_capped": is_capped,
+		"has_bonus": rested_xp > 0,
+	}
 
 # ─── Daily Challenge System ───────────────────────────────────────────────────
 

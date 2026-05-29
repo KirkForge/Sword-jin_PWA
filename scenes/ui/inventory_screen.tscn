@@ -1,0 +1,113 @@
+[gd_scene load_steps=2 format=3 uid="uid://b1inventory001"]
+
+[ext_resource type="Script" path="res://scripts/inventory_screen.gd" id="1_inv"]
+
+[node name="InventoryScreen" type="Control"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_inv")
+
+[node name="Background" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.05, 0.06, 0.08, 0.9)
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="WeaponSection" type="VBoxContainer" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="SectionLabel" type="Label" parent="CenterContainer/VBoxContainer/WeaponSection"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "⚔  Weapons"
+
+[node name="WeaponLabel" type="Label" parent="CenterContainer/VBoxContainer/WeaponSection"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "Equipped: broken_sword"
+
+[node name="WeaponList" type="VBoxContainer" parent="CenterContainer/VBoxContainer/WeaponSection"]
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="Sep1" type="HSeparator" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="SkillSection" type="VBoxContainer" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="SectionLabel" type="Label" parent="CenterContainer/VBoxContainer/SkillSection"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "✨  Skills"
+
+[node name="SkillLabel" type="Label" parent="CenterContainer/VBoxContainer/SkillSection"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "Skills: []"
+
+[node name="SkillList" type="VBoxContainer" parent="CenterContainer/VBoxContainer/SkillSection"]
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="Sep2" type="HSeparator" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="StatsSection" type="VBoxContainer" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="SectionLabel" type="Label" parent="CenterContainer/VBoxContainer/StatsSection"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "📊  Stats"
+
+[node name="PotionLabel" type="Label" parent="CenterContainer/VBoxContainer/StatsSection"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "Potions: 0"
+
+[node name="GoldLabel" type="Label" parent="CenterContainer/VBoxContainer/StatsSection"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "Gold: 0"
+theme_override_colors/font_color = Color(1, 0.843, 0, 1)
+
+[node name="Spacer" type="Control" parent="CenterContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 12)
+layout_mode = 2
+
+[node name="CloseButton" type="Button" parent="."]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -80.0
+offset_top = -48.0
+offset_right = 80.0
+offset_bottom = -8.0
+grow_horizontal = 2
+grow_vertical = 2
+custom_minimum_size = Vector2(160, 36)
+theme_override_font_sizes/font_size = 14
+text = "✕  Close"
