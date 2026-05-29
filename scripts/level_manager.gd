@@ -49,6 +49,13 @@ func _ready():
 		dlg_instance.name = "DialogueManager"
 		add_child(dlg_instance)
 	
+	# Add achievement toast (global listener for achievement unlocks)
+	var toast_scene = load("res://scenes/ui/achievement_toast.tscn")
+	if toast_scene:
+		var toast_instance = toast_scene.instantiate()
+		toast_instance.name = "AchievementToast"
+		add_child(toast_instance)
+	
 	# Add chapter manager (hidden by default)
 	var chm_scene = load("res://scenes/chapter_manager.tscn")
 	if chm_scene:

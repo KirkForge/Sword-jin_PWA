@@ -1,6 +1,6 @@
 extends Node
 # GameState — Persistent save/load + progression tracking
-# v0.76 — bestiary system with kill counts, lore unlocks, and enemy tracking
+# v0.77 — achievement badges with unlock tracking and toast notifications
 
 const SAVE_FILE := "user://swordjin_save.json"
 
@@ -166,6 +166,105 @@ const BESTIARY := {
 # Kill tracking: enemy_type → total kill count (persisted)
 var bestiary: Dictionary = {}  # enemy_type → {"kills": int, "lore_unlocked": [int]}
 
+# ─── Achievement Badges ──────────────────────────────────────────────────────
+# 4 categories: Combat, Exploration, Collection, Mastery
+# Each achievement has: id, name, icon (emoji), description, category, condition function
+
+const ACHIEVEMENTS := {
+	# Combat
+	"first_blood": {
+		"name": "First Blood",
+		"icon": "🗡",
+		"description": "Defeat your first enemy.",
+		"category": "Combat",
+	},
+	"body_count_50": {
+		"name": "Body Count",
+		"icon": "💀",
+		"description": "Defeat 50 enemies total.",
+		"category": "Combat",
+	},
+	"body_count_200": {
+		"name": "Massacre",
+		"icon": "☠",
+		"description": "Defeat 200 enemies total.",
+		"category": "Combat",
+	},
+	"flawless_chapter": {
+		"name": "Untouchable",
+		"icon": "🛡",
+		"description": "Complete a chapter without dying.",
+		"category": "Combat",
+	},
+	# Exploration
+	"first_step": {
+		"name": "First Step",
+		"icon": "👣",
+		"description": "Complete your first chapter.",
+		"category": "Exploration",
+	},
+	"half_way": {
+		"name": "Halfway There",
+		"icon": "🗺",
+		"description": "Complete 5 chapters.",
+		"category": "Exploration",
+	},
+	"act2_reacher": {
+		"name": "Beyond the Gate",
+		"icon": "🏰",
+		"description": "Reach Act 2.",
+		"category": "Exploration",
+	},
+	# Collection
+	"armory_3": {
+		"name": "Armed and Ready",
+		"icon": "⚔",
+		"description": "Collect 3 different weapons.",
+		"category": "Collection",
+	},
+	"armory_all": {
+		"name": "Living Arsenal",
+		"icon": "🔧",
+		"description": "Collect all 6 weapons.",
+		"category": "Collection",
+	},
+	"bestiary_half": {
+		"name": "Field Researcher",
+		"icon": "📖",
+		"description": "Discover 4 enemy types in the bestiary.",
+		"category": "Collection",
+	},
+	"bestiary_all": {
+		"name": "Monster Scholar",
+		"icon": "🎓",
+		"description": "Discover all 7 enemy types in the bestiary.",
+		"category": "Collection",
+	},
+	# Mastery
+	"speed_demon": {
+		"name": "Speed Demon",
+		"icon": "⚡",
+		"description": "Earn a 3-star rating on any chapter.",
+		"category": "Mastery",
+	},
+	"perfectionist": {
+		"name": "Perfectionist",
+		"icon": "💎",
+		"description": "Earn 3 stars on 5 chapters.",
+		"category": "Mastery",
+	},
+	"legendary_find": {
+		"name": "Jackpot",
+		"icon": "🌟",
+		"description": "Find a legendary-rarity weapon drop.",
+		"category": "Mastery",
+	},
+}
+
+# Achievement tracking (persisted)
+var achievements_unlocked: Dictionary = {}  # achievement_id → timestamp (float, OS.get_unix_time())
+signal achievement_unlocked(achievement_id: String, achievement_data: Dictionary)
+
 # Loot tracking
 var chapter_loot: Array = []  # Runtime: items dropped this chapter run
 var collected_weapons: Dictionary = {}  # weapon_id → {"count": int, "best_rarity": String}
@@ -199,6 +298,7 @@ func save_game():
 		"chapter_stars": chapter_stars,
 		"collected_weapons": collected_weapons,
 		"bestiary": bestiary,
+		"achievements_unlocked": achievements_unlocked,
 	}
 	
 	var file := FileAccess.open(SAVE_FILE, FileAccess.WRITE)
@@ -247,6 +347,7 @@ func load_game():
 		chapter_stars = data.get("chapter_stars", {})
 		collected_weapons = data.get("collected_weapons", {})
 		bestiary = data.get("bestiary", {})
+		achievements_unlocked = data.get("achievements_unlocked", {})
 		settings = data.get("settings", {
 			"master_volume": 1.0, "sfx_volume": 1.0, "bgm_volume": 0.7,
 			"screen_shake": true, "hit_stop": true, "show_damage_numbers": true,
@@ -291,6 +392,10 @@ func complete_current_chapter():
 			equipped_skills.append(s)
 	
 	saved_health = mini(saved_health + 25, saved_max_health)
+	
+	# Check chapter-based achievements
+	check_chapter_achievements(chapter_deaths, stars)
+	
 	save_game()
 
 func calculate_stars(chapter_id: String, deaths: int, elapsed_time: float) -> int:
@@ -479,6 +584,9 @@ func roll_loot_drop(enemy_type: String, is_boss: bool = false) -> Dictionary:
 	
 	print("LOOT DROP: %s [%s] (gold: %d)%s" % [weapon_id, rarity, loot.gold_value, " NEW!" if loot.get("is_new") else " dup"])
 	
+	# Check loot achievements
+	check_loot_achievements(rarity)
+	
 	save_game()
 	return loot
 
@@ -590,6 +698,8 @@ func record_kill(enemy_type: String) -> void:
 				entry.name, milestone, entry.lore[milestone].left(60) + "..."
 			])
 	
+	# Check kill-based achievements
+	check_achievements()
 	save_game()
 
 func get_bestiary_entry(enemy_type: String) -> Dictionary:
@@ -628,3 +738,114 @@ func get_bestiary_progress() -> Dictionary:
 		"lore_unlocked": lore_unlocked_count,
 		"total_lore": total_lore,
 	}
+
+# ─── Achievement System ─────────────────────────────────────────────────────
+
+func unlock_achievement(achievement_id: String) -> bool:
+	"""Try to unlock an achievement. Returns true if newly unlocked, false if already had it."""
+	if not ACHIEVEMENTS.has(achievement_id):
+		push_warning("ACHIEVEMENT: Unknown id '%s'" % achievement_id)
+		return false
+	if achievements_unlocked.has(achievement_id):
+		return false  # Already unlocked
+	
+	achievements_unlocked[achievement_id] = Time.get_unix_time_from_system()
+	var data: Dictionary = ACHIEVEMENTS[achievement_id]
+	print("🏆 ACHIEVEMENT UNLOCKED: %s %s — %s" % [data.icon, data.name, data.description])
+	achievement_unlocked.emit(achievement_id, data)
+	save_game()
+	return true
+
+func is_achievement_unlocked(achievement_id: String) -> bool:
+	return achievements_unlocked.has(achievement_id)
+
+func check_achievements() -> void:
+	"""Check all achievement conditions and unlock any that are met. Call at key moments."""
+	var total_kills := 0
+	for enemy_type in bestiary:
+		total_kills += bestiary[enemy_type].get("kills", 0)
+	
+	var completed_count := completed_chapters.size()
+	var weapons_count := collected_weapons.size()
+	var discovered_enemies := 0
+	for enemy_type in BESTIARY:
+		if bestiary.get(enemy_type, {}).get("kills", 0) > 0:
+			discovered_enemies += 1
+	
+	var three_star_count := 0
+	for stars in chapter_stars.values():
+		if stars >= 3:
+			three_star_count += 1
+	
+	# Combat
+	if total_kills >= 1:
+		unlock_achievement("first_blood")
+	if total_kills >= 50:
+		unlock_achievement("body_count_50")
+	if total_kills >= 200:
+		unlock_achievement("body_count_200")
+	
+	# Exploration
+	if completed_count >= 1:
+		unlock_achievement("first_step")
+	if completed_count >= 5:
+		unlock_achievement("half_way")
+	if current_act >= 2 or completed_count >= 4:
+		unlock_achievement("act2_reacher")
+	
+	# Collection
+	if weapons_count >= 3:
+		unlock_achievement("armory_3")
+	if weapons_count >= WEAPON_STATS.size():
+		unlock_achievement("armory_all")
+	if discovered_enemies >= 4:
+		unlock_achievement("bestiary_half")
+	if discovered_enemies >= BESTIARY.size():
+		unlock_achievement("bestiary_all")
+	
+	# Mastery
+	if three_star_count >= 1:
+		unlock_achievement("speed_demon")
+	if three_star_count >= 5:
+		unlock_achievement("perfectionist")
+
+func check_chapter_achievements(deaths: int, stars: int) -> void:
+	"""Check achievements that depend on chapter performance. Call after chapter completion."""
+	if deaths == 0:
+		unlock_achievement("flawless_chapter")
+	if stars >= 3:
+		unlock_achievement("speed_demon")
+	
+	# Re-check general achievements too
+	check_achievements()
+
+func check_loot_achievements(rarity: String) -> void:
+	"""Check achievements that depend on loot drops. Call after loot roll."""
+	if rarity == "legendary":
+		unlock_achievement("legendary_find")
+	check_achievements()
+
+func get_achievement_progress() -> Dictionary:
+	"""Get achievement stats for UI."""
+	var total := ACHIEVEMENTS.size()
+	var unlocked := achievements_unlocked.size()
+	return {
+		"total": total,
+		"unlocked": unlocked,
+		"percentage": (unlocked * 100.0 / total) if total > 0 else 0.0,
+	}
+
+func get_achievements_by_category() -> Dictionary:
+	"""Get achievements organized by category for the achievement screen."""
+	var categories := {}
+	for id in ACHIEVEMENTS:
+		var data: Dictionary = ACHIEVEMENTS[id]
+		var cat: String = data.get("category", "Other")
+		if not categories.has(cat):
+			categories[cat] = []
+		var entry := data.duplicate()
+		entry["id"] = id
+		entry["unlocked"] = achievements_unlocked.has(id)
+		entry["unlock_time"] = achievements_unlocked.get(id, 0.0)
+		categories[cat].append(entry)
+	return categories

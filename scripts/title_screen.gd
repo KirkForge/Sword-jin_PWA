@@ -1,17 +1,21 @@
 extends Control
 # TitleScreen — Entry point: start, continue, chapter select
-# ChapterManager is embedded; its Start button already changes scene to main.tscn
+# v0.77 — Added achievement screen button + toast + progress display
 
 @onready var start_btn = $CenterContainer/VBoxContainer/StartButton
 @onready var continue_btn = $CenterContainer/VBoxContainer/ContinueButton
 @onready var select_btn = $CenterContainer/VBoxContainer/SelectButton
 @onready var bestiary_btn = $CenterContainer/VBoxContainer/BestiaryButton
+@onready var achievement_btn = $CenterContainer/VBoxContainer/AchievementButton
 @onready var stars_label = $CenterContainer/VBoxContainer/StarsLabel
 @onready var collection_label = $CenterContainer/VBoxContainer/CollectionLabel
 @onready var bestiary_label = $CenterContainer/VBoxContainer/BestiaryLabel
+@onready var achievement_label = $CenterContainer/VBoxContainer/AchievementLabel
 @onready var chm = $ChapterManager
 
 var bestiary_screen: CanvasLayer = null
+var achievement_screen: CanvasLayer = null
+var achievement_toast: CanvasLayer = null
 
 func _ready():
 	start_btn.grab_focus()
@@ -50,6 +54,23 @@ func _ready():
 			bestiary_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
 		else:
 			bestiary_label.text = ""
+	
+	# Show achievement progress
+	if achievement_label:
+		var ap := GameState.get_achievement_progress()
+		if ap.unlocked > 0:
+			achievement_label.text = "🏆 %d / %d Badges (%.0f%%)" % [ap.unlocked, ap.total, ap.percentage]
+			achievement_label.add_theme_color_override("font_color", Color(1.0, 0.843, 0.0))
+		else:
+			achievement_label.text = ""
+	
+	# Spawn achievement toast (listens for unlock signals globally)
+	if achievement_toast == null:
+		achievement_toast = load("res://scenes/ui/achievement_toast.tscn").instantiate()
+		add_child(achievement_toast)
+	
+	# Run initial achievement check (catches any that should already be unlocked)
+	GameState.check_achievements()
 
 func _on_start_pressed():
 	ChapterDatabase.set_current_chapter("act01_ch001")
@@ -88,6 +109,17 @@ func _on_bestiary_pressed():
 	bestiary_screen.show_bestiary()
 
 func _on_bestiary_closed():
+	start_btn.grab_focus()
+
+func _on_achievement_pressed():
+	AudioManager.play_sfx("ui_click")
+	if achievement_screen == null:
+		achievement_screen = load("res://scenes/ui/achievement_screen.tscn").instantiate()
+		achievement_screen.closed.connect(_on_achievement_closed)
+		add_child(achievement_screen)
+	achievement_screen.show_achievements()
+
+func _on_achievement_closed():
 	start_btn.grab_focus()
 
 func _get_last_chapter() -> String:
