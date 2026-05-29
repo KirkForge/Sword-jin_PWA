@@ -7,6 +7,11 @@ extends Area2D
 @onready var visual = $Polygon2D
 
 func _ready():
+	# Daily challenge: no_potions modifier — self-destruct
+	if GameState.is_daily_challenge_run and "no_potions" in GameState.active_daily_modifiers:
+		queue_free()
+		return
+	
 	body_entered.connect(_on_body_entered)
 	# Gentle bob animation
 	var tween = create_tween().set_loops()

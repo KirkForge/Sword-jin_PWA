@@ -1,6 +1,6 @@
 extends Control
 # TitleScreen — Entry point: start, continue, chapter select
-# v0.78 — Added daily streak display + claim button
+# v0.79 — Added daily challenge button
 
 @onready var start_btn = $CenterContainer/VBoxContainer/StartButton
 @onready var continue_btn = $CenterContainer/VBoxContainer/ContinueButton
@@ -13,13 +13,19 @@ extends Control
 @onready var achievement_label = $CenterContainer/VBoxContainer/AchievementLabel
 @onready var streak_label = $CenterContainer/VBoxContainer/StreakLabel
 @onready var streak_claim_btn = $CenterContainer/VBoxContainer/StreakClaimButton
+@onready var daily_challenge_btn = $CenterContainer/VBoxContainer/DailyChallengeButton
 @onready var chm = $ChapterManager
 
 var bestiary_screen: CanvasLayer = null
 var achievement_screen: CanvasLayer = null
 var achievement_toast: CanvasLayer = null
+var daily_challenge_screen: CanvasLayer = null
 
 func _ready():
+	# Reset daily challenge runtime state when returning to title
+	GameState.is_daily_challenge_run = false
+	GameState.active_daily_modifiers = []
+	
 	start_btn.grab_focus()
 	
 	# Start title music
@@ -85,6 +91,15 @@ func _ready():
 			streak_claim_btn.disabled = false
 		else:
 			streak_claim_btn.visible = false
+	
+	# Show daily challenge button
+	if daily_challenge_btn:
+		if GameState.is_daily_challenge_available():
+			daily_challenge_btn.text = "⚔ Daily Challenge"
+			daily_challenge_btn.modulate = Color(1.0, 0.843, 0.0)  # Gold highlight
+		else:
+			daily_challenge_btn.text = "✅ Daily Done"
+			daily_challenge_btn.modulate = Color(0.5, 0.5, 0.5)
 	
 	# Spawn achievement toast (listens for unlock signals globally)
 	if achievement_toast == null:
@@ -177,4 +192,21 @@ func _on_streak_claim_pressed():
 	# Show reward feedback via toast
 	if achievement_toast == null:
 		achievement_toast = load("res://scenes/ui/achievement_toast.tscn").instantiate()
-		add_child(achievement_toast)
+		add_child(achievement_toast)func _on_daily_challenge_pressed():
+	AudioManager.play_sfx("ui_click")
+	if daily_challenge_screen == null:
+		daily_challenge_screen = load("res://scenes/ui/daily_challenge_screen.tscn").instantiate()
+		daily_challenge_screen.closed.connect(_on_daily_challenge_closed)
+		add_child(daily_challenge_screen)
+	daily_challenge_screen.show_challenge()
+
+func _on_daily_challenge_closed():
+	start_btn.grab_focus()
+	# Refresh button state in case they started the challenge
+	if daily_challenge_btn:
+		if GameState.is_daily_challenge_available():
+			daily_challenge_btn.text = "⚔ Daily Challenge"
+			daily_challenge_btn.modulate = Color(1.0, 0.843, 0.0)
+		else:
+			daily_challenge_btn.text = "✅ Daily Done"
+			daily_challenge_btn.modulate = Color(0.5, 0.5, 0.5)

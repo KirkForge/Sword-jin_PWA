@@ -1,5 +1,6 @@
 extends Node2D
 # LevelManager — Loads chapter data, spawns enemies, tracks objectives
+# v0.79 — Daily challenge modifier support
 
 @onready var player = $Player
 @onready var skeleton_scene = preload("res://scenes/skeleton.tscn")
@@ -152,6 +153,10 @@ func _setup_level():
 		if child.is_in_group("enemy"):
 			enemies_remaining += 1
 	
+	# Apply daily challenge modifiers if active
+	if GameState.is_daily_challenge_run:
+		_apply_daily_modifiers()
+	
 	GameState.reset_chapter_state()
 	GameState.chapter_kills = 0
 
@@ -183,12 +188,107 @@ func _spawn_enemy(type: String, pos: Vector2, stats: Dictionary):
 		# We'll poll in process instead — simpler
 		pass
 
+func _apply_daily_modifiers():
+	"""Apply active daily challenge modifiers to the level."""
+	var modifiers := GameState.active_daily_modifiers
+	if modifiers.is_empty():
+		return
+	
+	var challenge_info := GameState.get_daily_challenge()
+	var mod_labels := []
+	for mod_id in modifiers:
+		var mod_data := GameState.DAILY_CHALLENGE_MODIFIERS.get(mod_id, {})
+		mod_labels.append(mod_data.get("icon", "?") + " " + mod_data.get("label", mod_id))
+	
+	$Objective.text = "⚔ DAILY: " + " | ".join(mod_labels)
+	print("DAILY CHALLENGE modifiers: %s" % str(modifiers))
+	
+	# double_enemies: duplicate each enemy
+	if "double_enemies" in modifiers:
+		var enemy_nodes := []
+		for child in get_children():
+			if child.is_in_group("enemy") and not child.is_dead:
+				enemy_nodes.append(child)
+		for enemy in enemy_nodes:
+			var offset := Vector2(randf_range(-30, 30), randf_range(-30, 30))
+			var new_pos := enemy.position + offset
+			# Spawn same type at offset position
+			_spawn_enemy("skeleton", new_pos, {})  # Simplified: spawn skeleton copy
+		# Recount
+		enemies_remaining = 0
+		for child in get_children():
+			if child.is_in_group("enemy"):
+				enemies_remaining += 1
+	
+	# glass_cannon: player 50% HP, 2× damage
+	if "glass_cannon" in modifiers:
+		if player:
+			player.max_health = int(player.max_health * 0.5)
+			player.health = min(player.health, player.max_health)
+			player._update_label()
+			player.attack_damage = int(player.attack_damage * 2.0)
+	
+	# armored_foes: enemies +50% HP
+	if "armored_foes" in modifiers:
+		for child in get_children():
+			if child.is_in_group("enemy") and not child.is_dead:
+				child.max_health = int(child.max_health * 1.5)
+				child.health = child.max_health
+	
+	# elite_patrol: upgrade all enemies to captains
+	if "elite_patrol" in modifiers:
+		for child in get_children():
+			if child.is_in_group("enemy") and not child.is_dead:
+				child.max_health = int(child.max_health * 1.3)
+				child.health = child.max_health
+				child.attack_damage = int(child.attack_damage * 1.3) if child.get("attack_damage") != null else 12
+				child.speed = child.speed * 1.1 if child.get("speed") != null else 55.0
+	
+	# no_dodge: disable dodge roll
+	if "no_dodge" in modifiers:
+		if player and player.has_method("set_dodge_enabled"):
+			player.set_dodge_enabled(false)
+
+var _daily_poison_timer: float = 0.0
+var _daily_speed_timer: float = 0.0
+
+func _process_daily_modifiers(delta: float):
+	"""Process runtime daily challenge modifiers each frame."""
+	var modifiers := GameState.active_daily_modifiers
+	
+	# speed_run: auto-fail if time exceeds 90 seconds
+	if "speed_run" in modifiers:
+		_daily_speed_timer += delta
+		if _daily_speed_timer > 90.0:
+			# Time's up — fail the challenge
+			print("DAILY CHALLENGE: Speed run failed! Time exceeded 90s")
+			GameState.is_daily_challenge_run = false
+			GameState.active_daily_modifiers = []
+			# Reload the scene (fail state)
+			get_tree().reload_current_scene()
+			return
+		# Show timer in objective
+		var remaining := 90.0 - _daily_speed_timer
+		$Objective.text = "⚔ DAILY ⏱ %.0fs remaining" % remaining
+	
+	# poison_swamp: 1 poison tick every 3 seconds
+	if "poison_swamp" in modifiers:
+		_daily_poison_timer += delta
+		if _daily_poison_timer >= 3.0:
+			_daily_poison_timer = 0.0
+			if player and player.health > 1:
+				player.take_damage(1)
+
 func _process(_delta):
 	# Check chapter complete condition
 	if chapter_data.is_empty():
 		return
 	if not dialogue_triggered.get("start", false):
 		return  # Wait for start dialogue to finish
+	
+	# Daily challenge runtime modifiers
+	if GameState.is_daily_challenge_run:
+		_process_daily_modifiers(_delta)
 	
 	if chapter_data.get("type", "combat") == "combat":
 		var live_enemies := 0
@@ -236,6 +336,12 @@ func _finish_chapter_complete():
 	var allies = chapter_data.get("allies", [])
 	if not allies.is_empty():
 		player.heal(25)
+	
+	# Complete daily challenge if this was a challenge run
+	if GameState.is_daily_challenge_run:
+		GameState.complete_daily_challenge()
+		GameState.is_daily_challenge_run = false
+		GameState.active_daily_modifiers = []
 	
 	print("Chapter complete! Transitioning...")
 	AudioManager.play_sfx("level_complete")

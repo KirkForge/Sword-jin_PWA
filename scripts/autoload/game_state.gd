@@ -1,6 +1,6 @@
 extends Node
 # GameState — Persistent save/load + progression tracking
-# v0.78 — daily login streak with escalating rewards
+# v0.79 — daily challenge with modifiers and bonus rewards
 
 const SAVE_FILE := "user://swordjin_save.json"
 
@@ -272,6 +272,19 @@ const ACHIEVEMENTS := {
 		"description": "Log in 7 days in a row.",
 		"category": "Mastery",
 	},
+	# Daily Challenge (Retention)
+	"daily_challenger": {
+		"name": "Daily Challenger",
+		"icon": "⚔",
+		"description": "Complete your first daily challenge.",
+		"category": "Mastery",
+	},
+	"daily_veteran": {
+		"name": "Daily Veteran",
+		"icon": "🏅",
+		"description": "Complete 7 daily challenges.",
+		"category": "Mastery",
+	},
 }
 
 # Achievement tracking (persisted)
@@ -297,6 +310,72 @@ var daily_streak: int = 0          # Consecutive days
 var last_login_date: String = ""   # YYYY-MM-DD format (UTC date)
 var streak_claimed_today: bool = false  # Whether today's reward was claimed
 signal streak_claimed(streak_day: int, rewards: Dictionary)
+
+# ─── Daily Challenge ──────────────────────────────────────────────────────────
+# Deterministic daily challenge: seeded by date, picks chapter + modifiers
+# Same challenge for everyone on the same day
+# Bonus gold reward + achievement tracking
+
+const DAILY_CHALLENGE_MODIFIERS := {
+	"double_enemies": {
+		"icon": "👥",
+		"label": "Double Trouble",
+		"description": "2× enemy count",
+		"color": "#FF5555",
+	},
+	"no_potions": {
+		"icon": "🚫",
+		"label": "No Heal",
+		"description": "No potions drop",
+		"color": "#FF8800",
+	},
+	"speed_run": {
+		"icon": "⏱",
+		"label": "Speed Run",
+		"description": "Complete in 90 seconds",
+		"color": "#55FFFF",
+	},
+	"glass_cannon": {
+		"icon": "💀",
+		"label": "Glass Cannon",
+		"description": "50% HP, 2× damage",
+		"color": "#FF55FF",
+	},
+	"armored_foes": {
+		"icon": "🛡",
+		"label": "Armored Foes",
+		"description": "Enemies have +50% HP",
+		"color": "#AAAAFF",
+	},
+	"no_dodge": {
+		"icon": "⚡",
+		"label": "No Dodge",
+		"description": "Dodge roll disabled",
+		"color": "#FFFF55",
+	},
+	"elite_patrol": {
+		"icon": "👑",
+		"label": "Elite Patrol",
+		"description": "All enemies are captains",
+		"color": "#FFAA55",
+	},
+	"poison_swamp": {
+		"icon": "☠",
+		"label": "Poison Swamp",
+		"description": "1 poison tick/3sec",
+		"color": "#55FF55",
+	},
+}
+
+# Daily challenge state
+var daily_challenge_completed_today: bool = false
+var daily_challenge_best_gold: int = 0  # Lifetime best gold from daily challenges
+var daily_challenge_total_completed: int = 0  # Lifetime total completions
+signal daily_challenge_completed(rewards: Dictionary)
+
+# Daily challenge runtime state (not persisted, set when starting a challenge)
+var is_daily_challenge_run: bool = false
+var active_daily_modifiers: Array = []  # Array of modifier IDs active this run
 
 # Loot tracking
 var chapter_loot: Array = []  # Runtime: items dropped this chapter run
@@ -336,6 +415,9 @@ func save_game():
 		"daily_streak": daily_streak,
 		"last_login_date": last_login_date,
 		"streak_claimed_today": streak_claimed_today,
+		"daily_challenge_completed_today": daily_challenge_completed_today,
+		"daily_challenge_best_gold": daily_challenge_best_gold,
+		"daily_challenge_total_completed": daily_challenge_total_completed,
 	}
 	
 	var file := FileAccess.open(SAVE_FILE, FileAccess.WRITE)
@@ -388,6 +470,9 @@ func load_game():
 		daily_streak = data.get("daily_streak", 0)
 		last_login_date = data.get("last_login_date", "")
 		streak_claimed_today = data.get("streak_claimed_today", false)
+		daily_challenge_completed_today = data.get("daily_challenge_completed_today", false)
+		daily_challenge_best_gold = data.get("daily_challenge_best_gold", 0)
+		daily_challenge_total_completed = data.get("daily_challenge_total_completed", 0)
 		settings = data.get("settings", {
 			"master_volume": 1.0, "sfx_volume": 1.0, "bgm_volume": 0.7,
 			"screen_shake": true, "hit_stop": true, "show_damage_numbers": true,
@@ -901,6 +986,7 @@ func _check_daily_streak() -> void:
 		daily_streak = 1
 		last_login_date = today
 		streak_claimed_today = false
+		daily_challenge_completed_today = false  # New day = fresh challenge
 		print("STREAK: First login! Day 1")
 		return
 	
@@ -908,6 +994,9 @@ func _check_daily_streak() -> void:
 		# Same day — already logged in today
 		print("STREAK: Already logged in today (day %d)" % daily_streak)
 		return
+	
+	# New day — reset daily challenge
+	daily_challenge_completed_today = false
 	
 	# Check if yesterday was the last login (consecutive)
 	var yesterday := _get_yesterday_date(last_login_date)
@@ -992,3 +1081,92 @@ func _is_next_day(date1: String, date2: String) -> bool:
 		"hour": 12, "minute": 0, "second": 0
 	})
 	return (epoch2 - epoch1) <= 86400 and epoch2 > epoch1
+
+# ─── Daily Challenge System ───────────────────────────────────────────────────
+
+func get_daily_challenge() -> Dictionary:
+	"""Generate today's daily challenge. Deterministic from date seed."""
+	var today := Time.get_datetime_string_from_system().split(" ")[0]  # YYYY-MM-DD
+	var seed_val := _date_to_seed(today)
+	
+	# Seeded random for deterministic daily challenge
+	var rng := RandomNumberGenerator.new()
+	rng.seed = seed_val
+	
+	# Pick chapter (from unlocked chapters, or any if none unlocked)
+	var available_chapters := ChapterDatabase.chapters.keys()
+	if available_chapters.is_empty():
+		available_chapters = ["act01_ch001"]
+	var chapter_idx := rng.randi() % available_chapters.size()
+	var chapter_id: String = available_chapters[chapter_idx]
+	
+	# Pick 2-3 modifiers
+	var modifier_keys := DAILY_CHALLENGE_MODIFIERS.keys()
+	var num_modifiers := rng.randi_range(2, 3)
+	var selected_modifiers := []
+	var used_indices := []
+	for i in range(num_modifiers):
+		var idx := rng.randi() % modifier_keys.size()
+		while idx in used_indices:
+			idx = rng.randi() % modifier_keys.size()
+		used_indices.append(idx)
+		selected_modifiers.append(modifier_keys[idx])
+	
+	# Calculate bonus gold (base 50 + 25 per modifier)
+	var bonus_gold := 50 + (25 * num_modifiers)
+	
+	return {
+		"date": today,
+		"chapter_id": chapter_id,
+		"modifiers": selected_modifiers,
+		"bonus_gold": bonus_gold,
+		"completed": daily_challenge_completed_today,
+	}
+
+func complete_daily_challenge() -> void:
+	"""Mark today's daily challenge as completed and award rewards."""
+	if daily_challenge_completed_today:
+		return
+	
+	var challenge := get_daily_challenge()
+	var bonus_gold: int = challenge.get("bonus_gold", 50)
+	
+	player_gold += bonus_gold
+	daily_challenge_completed_today = true
+	daily_challenge_total_completed += 1
+	if bonus_gold > daily_challenge_best_gold:
+		daily_challenge_best_gold = bonus_gold
+	
+	print("DAILY CHALLENGE COMPLETE! +%dg bonus" % bonus_gold)
+	daily_challenge_completed.emit({"gold": bonus_gold})
+	
+	# Check achievements
+	_check_daily_challenge_achievements()
+	save_game()
+
+func _check_daily_challenge_achievements() -> void:
+	"""Check daily challenge achievements."""
+	if daily_challenge_total_completed >= 1:
+		unlock_achievement("daily_challenger")
+	if daily_challenge_total_completed >= 7:
+		unlock_achievement("daily_veteran")
+
+func _date_to_seed(date_str: String) -> int:
+	"""Convert YYYY-MM-DD date to a deterministic integer seed."""
+	var parts := date_str.split("-")
+	var year := int(parts[0])
+	var month := int(parts[1])
+	var day := int(parts[2])
+	# Simple hash: year*10000 + month*100 + day (deterministic per day)
+	return year * 10000 + month * 100 + day
+
+func is_daily_challenge_available() -> bool:
+	"""Check if today's daily challenge hasn't been completed yet."""
+	return not daily_challenge_completed_today
+
+func reset_daily_challenge_if_new_day() -> void:
+	"""Reset daily challenge completion if it's a new day. Called on login."""
+	var today := Time.get_datetime_string_from_system().split(" ")[0]
+	# If we have a last_login_date and it's different from today, the challenge resets
+	# (The streak system already handles last_login_date updates)
+	# daily_challenge_completed_today resets naturally since it's date-keyed

@@ -1,0 +1,100 @@
+[gd_scene load_steps=2 format=3 uid="uid://daily_challenge_scene"]
+
+[ext_resource type="Script" path="res://scripts/daily_challenge_screen.gd" id="1_dcs"]
+
+[node name="DailyChallengeScreen" type="CanvasLayer"]
+script = ExtResource("1_dcs")
+
+[node name="Panel" type="PanelContainer" parent="."]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -160
+offset_top = -140
+offset_right = 160
+offset_bottom = 140
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="Panel"]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Panel/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="TitleLabel" type="Label" parent="Panel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "⚔ Daily Challenge"
+horizontal_alignment = 1
+
+[node name="ChapterLabel" type="Label" parent="Panel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "📍 Chapter"
+horizontal_alignment = 1
+
+[node name="Spacer" type="Control" parent="Panel/MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 8)
+layout_mode = 2
+
+[node name="ModifiersHeader" type="Label" parent="Panel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Modifiers:"
+self_modulate = Color(0.7, 0.7, 0.7, 1)
+
+[node name="ModifiersContainer" type="VBoxContainer" parent="Panel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Spacer2" type="Control" parent="Panel/MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 8)
+layout_mode = 2
+
+[node name="RewardLabel" type="Label" parent="Panel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "💰 Bonus: +50 gold"
+horizontal_alignment = 1
+
+[node name="StatusLabel" type="Label" parent="Panel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "⏳ Available"
+horizontal_alignment = 1
+
+[node name="StatsLabel" type="Label" parent="Panel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "Completed: 0 total"
+horizontal_alignment = 1
+self_modulate = Color(0.5, 0.5, 0.5, 1)
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Panel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="StartButton" type="Button" parent="Panel/MarginContainer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(120, 36)
+focus_mode = 2
+text = "⚔ Start Challenge"
+
+[node name="BackButton" type="Button" parent="Panel/MarginContainer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(80, 36)
+focus_mode = 2
+text = "Back"
+
+[connection signal="pressed" from="Panel/MarginContainer/VBoxContainer/HBoxContainer/StartButton" to="." method="_on_start_pressed"]
+[connection signal="pressed" from="Panel/MarginContainer/VBoxContainer/HBoxContainer/BackButton" to="." method="_on_back_pressed"]

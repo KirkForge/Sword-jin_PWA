@@ -48,6 +48,7 @@ var attack_timer := 0.0
 var cooldown_timer := 0.0
 var dodge_timer := 0.0
 var dodge_cooldown_timer := 0.0
+var dodge_enabled := true  # Can be disabled by daily challenge modifier
 var is_dead := false
 
 # Poison
@@ -167,7 +168,7 @@ func _physics_process(delta):
 			sprite.play("idle")
 	
 	# Skill inputs
-	if Input.is_action_just_pressed("skill1") and dodge_cooldown_timer <= 0 and not is_attacking:
+	if Input.is_action_just_pressed("skill1") and dodge_cooldown_timer <= 0 and not is_attacking and dodge_enabled:
 		var skill = GameState.equipped_skills[0] if GameState.equipped_skills.size() > 0 else ""
 		match skill:
 			"dodge_roll":
@@ -345,6 +346,10 @@ func _release_heavy_attack():
 	print("HEAVY ATTACK! %.0f%% charged → %d DMG" % [charge_ratio * 100, dmg])
 
 # --- DODGE ROLL ---
+func set_dodge_enabled(enabled: bool):
+	"""Enable or disable dodge roll (used by daily challenge)."""
+	dodge_enabled = enabled
+
 func _start_dodge():
 	is_dodging = true
 	dodge_timer = DODGE_DURATION
