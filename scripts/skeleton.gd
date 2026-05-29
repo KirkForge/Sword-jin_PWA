@@ -17,6 +17,10 @@ var attack_timer := 0.0
 var cooldown_timer := 0.0
 var is_dead := false
 
+# Knockback
+var knockback_velocity := Vector2.ZERO
+const KNOCKBACK_FRICTION := 500.0  # How fast knockback decays
+
 @onready var sprite = $AnimatedSprite2D
 @onready var attack_hitbox = $AttackHitbox/CollisionShape2D
 @onready var detection_area = $DetectionArea
@@ -37,6 +41,13 @@ func _ready():
 
 func _physics_process(delta):
 	if is_dead:
+		return
+	
+	# Knockback
+	if knockback_velocity.length() > 1.0:
+		velocity = knockback_velocity
+		knockback_velocity = knockback_velocity.move_toward(Vector2.ZERO, KNOCKBACK_FRICTION * delta)
+		move_and_slide()
 		return
 	
 	# Timers
@@ -193,3 +204,11 @@ func _on_detection_area_body_entered(body):
 func _on_detection_area_body_exited(body):
 	if body.is_in_group("player") and body == player:
 		player = null
+
+func apply_knockback(direction: Vector2, force: float):
+	"""Apply knockback impulse in the given direction."""
+	knockback_velocity = direction * force
+	modulate = Color(1.5, 0.5, 0.5)  # Bright flash on knockback
+	await get_tree().create_timer(0.08).timeout
+	if not is_dead:
+		modulate = Color.WHITE

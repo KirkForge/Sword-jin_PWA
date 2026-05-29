@@ -1,6 +1,6 @@
 extends CharacterBody2D
 # Player — Jin the Swordmaster
-# v0.70 — charged heavy attack, poison, skills (whirlwind/shadow/battle_cry)
+# v0.84 — 3-hit combo system, knockback on all attacks, enemy hit flash
 
 var damage_number_scene = preload("res://scenes/ui/damage_number.tscn")
 
@@ -9,6 +9,15 @@ var damage_number_scene = preload("res://scenes/ui/damage_number.tscn")
 var attack_cooldown: float = 0.4
 var attack_damage: int = 10
 var max_health := 100
+
+# --- Combo System ---
+const COMBO_WINDOW := 0.5       # Time window to chain next hit
+const COMBO_MAX := 3            # 3-hit combo chain
+const COMBO_DAMAGE_MULT := [1.0, 1.2, 1.6]  # Damage multiplier per hit
+const COMBO_KNOCKBACK := [80.0, 100.0, 150.0]  # Knockback force per hit
+var combo_count := 0            # Current combo hit (0-2)
+var combo_window_timer := 0.0  # Timer for chaining next hit
+var combo_active := false
 
 # Dodge roll
 const DODGE_DURATION := 0.25
@@ -121,6 +130,13 @@ func _physics_process(delta):
 	
 	if cooldown_timer > 0:
 		cooldown_timer -= delta
+	
+	# Combo window timer
+	if combo_window_timer > 0:
+		combo_window_timer -= delta
+		if combo_window_timer <= 0:
+			combo_active = false
+			combo_count = 0
 	
 	if dodge_timer > 0:
 		dodge_timer -= delta
@@ -235,7 +251,10 @@ func _update_label():
 	if label:
 		var poison_str = " ☠" if poison_timer > 0 else ""
 		var buff_str = " ⚡" if GameState.damage_buff_mult > 1.0 else ""
-		label.text = "JIN HP:%d/%d%s%s" % [health, max_health, poison_str, buff_str]
+		var combo_str = ""
+		if combo_active and combo_count > 0:
+			combo_str = " ×%d" % (combo_count + 1)
+		label.text = "JIN HP:%d/%d%s%s%s" % [health, max_health, poison_str, buff_str, combo_str]
 	if health_bar:
 		health_bar.update_health(health, max_health)
 	GameState.saved_health = health
@@ -300,18 +319,36 @@ func _input(event):
 				"battle_cry":
 					_use_battle_cry()
 
-# --- LIGHT ATTACK ---
+# --- LIGHT ATTACK (with combo) ---
 func _start_attack():
+	# Advance combo if within window
+	if combo_active and combo_window_timer > 0:
+		combo_count = (combo_count + 1) % COMBO_MAX
+	else:
+		combo_count = 0
+	
+	combo_active = true
+	combo_window_timer = COMBO_WINDOW
+	
 	is_attacking = true
 	attack_timer = attack_duration
-	cooldown_timer = attack_duration + attack_cooldown
+	# Combo hits have shorter cooldown (faster chaining)
+	var cd_reduction = 1.0 - combo_count * 0.15  # 0%, 15%, 30% faster
+	cooldown_timer = (attack_duration + attack_cooldown) * cd_reduction
 	attack_hitbox.disabled = false
 	sprite.play("attack")
-	AudioManager.play_random_pitch("sword_swing", 0.95, 1.05)
+	
+	# Pitch rises with combo for audio feedback
+	var pitch = 0.95 + combo_count * 0.1
+	AudioManager.play_random_pitch("sword_swing", pitch, pitch + 0.05)
+	
 	var facing_right = sprite.scale.x >= 0
 	var facing = Vector2.RIGHT if facing_right else Vector2.LEFT
-	velocity = facing * speed * 2.0
+	# Combo hits lunge further
+	var lunge_mult = 2.0 + combo_count * 0.5
+	velocity = facing * speed * lunge_mult
 	modulate = Color.WHITE
+	_update_label()
 
 func _end_attack():
 	is_attacking = false
@@ -387,6 +424,10 @@ func _use_whirlwind():
 			if body.has_method("take_damage"):
 				body.take_damage(dmg)
 				HitStop.trigger_light()
+			# Whirlwind knockback — push outward from player
+			if body.has_method("apply_knockback"):
+				var push_dir = (body.global_position - global_position).normalized()
+				body.apply_knockback(push_dir, 120.0)
 	
 	var tween = create_tween()
 	tween.tween_property(sprite, "rotation", TAU, WHIRLWIND_DURATION)
@@ -457,10 +498,25 @@ func _use_battle_cry():
 
 func _on_attack_hitbox_body_entered(body):
 	if body.has_method("take_damage"):
-		var dmg = int(attack_damage * GameState.damage_buff_mult)
+		# Combo damage multiplier
+		var dmg_mult = COMBO_DAMAGE_MULT[combo_count] if combo_active and combo_count < COMBO_DAMAGE_MULT.size() else 1.0
+		var dmg = int(attack_damage * dmg_mult * GameState.damage_buff_mult)
 		body.take_damage(dmg)
+		
+		# Knockback — push enemy away from player
+		if body.has_method("apply_knockback"):
+			var knockback_force = COMBO_KNOCKBACK[combo_count] if combo_active and combo_count < COMBO_KNOCKBACK.size() else 80.0
+			var dir = (body.global_position - global_position).normalized()
+			body.apply_knockback(dir, knockback_force)
+		
 		AudioManager.play_random_pitch("sword_hit", 0.9, 1.1)
 		HitStop.trigger_light()
+		
+		# Combo finisher (3rd hit) — extra juice
+		if combo_active and combo_count == COMBO_MAX - 1:
+			ScreenShake.shake(2.0, 0.15)
+			HitStop.trigger_heavy()
+			GameState.unlock_achievement("combo_master")
 
 func get_current_health() -> int:
 	return health

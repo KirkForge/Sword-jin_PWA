@@ -1,11 +1,14 @@
 extends Node2D
-# LevelManager — v0.82 — Loads chapter data, spawns enemies, tracks objectives
-# v0.81 — Ghost HUD indicator, time comparison
+# LevelManager — v0.84 — All 7 enemy types spawnable, combo system, knockback
 
 @onready var player = $Player
 @onready var skeleton_scene = preload("res://scenes/skeleton.tscn")
 @onready var captain_scene = preload("res://scenes/skeleton_captain.tscn")
 @onready var archer_scene = preload("res://scenes/skeleton_archer.tscn")
+@onready var bandit_scene = preload("res://scenes/bandit.tscn")
+@onready var assassin_scene = preload("res://scenes/assassin.tscn")
+@onready var golem_scene = preload("res://scenes/golem.tscn")
+@onready var ghost_scene = preload("res://scenes/ghost.tscn")
 @onready var merchant_scene = preload("res://scenes/merchant_ally.tscn")
 @onready var gate_scene = preload("res://scenes/iron_gate.tscn")
 @onready var victory_screen_scene = preload("res://scenes/ui/victory_screen.tscn")
@@ -242,14 +245,48 @@ func _update_ghost_hud():
 			ghost_hud.text = "👻 GHOST RUN | Neck and neck!"
 			ghost_hud.add_theme_color_override("font_color", Color(0.3, 0.8, 1.0))  # Cyan
 
+func _update_combo_hud():
+	"""Update the combo counter display in the HUD."""
+	var combo_label = get_node_or_null("ComboCounter")
+	if combo_label == null:
+		return
+	
+	var p = get_node_or_null("Player")
+	if p == null or p.is_dead:
+		combo_label.text = ""
+		return
+	
+	if p.combo_active and p.combo_count > 0:
+		var hit_num = p.combo_count + 1
+		var combo_colors = [Color(1.0, 1.0, 1.0), Color(1.0, 0.9, 0.3), Color(1.0, 0.4, 0.1)]
+		var color = combo_colors[p.combo_count] if p.combo_count < combo_colors.size() else Color(1.0, 0.2, 0.2)
+		combo_label.text = "×%d COMBO!" % hit_num
+		combo_label.add_theme_color_override("font_color", color)
+		# Scale up briefly on finisher
+		if p.combo_count == 2:
+			combo_label.add_theme_font_size_override("font_size", 22)
+		else:
+			combo_label.add_theme_font_size_override("font_size", 18)
+	else:
+		combo_label.text = ""
+
 func _spawn_enemy(type: String, pos: Vector2, stats: Dictionary):
 	var inst: CharacterBody2D
-	if type == "skeleton_captain":
-		inst = captain_scene.instantiate()
-	elif type == "skeleton_archer":
-		inst = archer_scene.instantiate()
-	else:
-		inst = skeleton_scene.instantiate()
+	match type:
+		"skeleton_captain":
+			inst = captain_scene.instantiate()
+		"skeleton_archer":
+			inst = archer_scene.instantiate()
+		"bandit":
+			inst = bandit_scene.instantiate()
+		"assassin":
+			inst = assassin_scene.instantiate()
+		"golem":
+			inst = golem_scene.instantiate()
+		"ghost":
+			inst = ghost_scene.instantiate()
+		_:
+			inst = skeleton_scene.instantiate()
 		
 	inst.position = pos
 	add_child(inst)
@@ -294,8 +331,22 @@ func _apply_daily_modifiers():
 		for enemy in enemy_nodes:
 			var offset := Vector2(randf_range(-30, 30), randf_range(-30, 30))
 			var new_pos := enemy.position + offset
-			# Spawn same type at offset position
-			_spawn_enemy("skeleton", new_pos, {})  # Simplified: spawn skeleton copy
+			# Determine enemy type from script name
+			var enemy_type := "skeleton"
+			var script_path = enemy.get_script().resource_path if enemy.get_script() else ""
+			if "bandit" in script_path:
+				enemy_type = "bandit"
+			elif "assassin" in script_path:
+				enemy_type = "assassin"
+			elif "golem" in script_path:
+				enemy_type = "golem"
+			elif "ghost" in script_path:
+				enemy_type = "ghost"
+			elif "skeleton_captain" in script_path:
+				enemy_type = "skeleton_captain"
+			elif "skeleton_archer" in script_path:
+				enemy_type = "skeleton_archer"
+			_spawn_enemy(enemy_type, new_pos, {})
 		# Recount
 		enemies_remaining = 0
 		for child in get_children():
@@ -375,6 +426,9 @@ func _process(_delta):
 	# Update ghost HUD
 	if ghost_active:
 		_update_ghost_hud()
+	
+	# Update combo counter HUD
+	_update_combo_hud()
 	
 	if chapter_data.get("type", "combat") == "combat":
 		var live_enemies := 0

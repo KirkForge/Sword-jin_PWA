@@ -19,6 +19,10 @@ var attack_timer := 0.0
 var cooldown_timer := 0.0
 var is_dead := false
 
+# Knockback
+var knockback_velocity := Vector2.ZERO
+const KNOCKBACK_FRICTION := 700.0
+
 # Assassin mechanics
 var is_vanished := false
 var vanish_cooldown := 5.0
@@ -46,6 +50,16 @@ func _ready():
 
 func _physics_process(delta):
 	if is_dead:
+		return
+	
+	# Knockback (cancel vanish if hit)
+	if knockback_velocity.length() > 1.0:
+		if is_vanished:
+			is_vanished = false
+			modulate.a = 1.0
+		velocity = knockback_velocity
+		knockback_velocity = knockback_velocity.move_toward(Vector2.ZERO, KNOCKBACK_FRICTION * delta)
+		move_and_slide()
 		return
 	
 	# Vanish management
@@ -204,6 +218,16 @@ func _on_detection_area_body_entered(body):
 func _on_detection_area_body_exited(body):
 	if body.is_in_group("player") and body == player:
 		player = null
+
+func apply_knockback(direction: Vector2, force: float):
+	if is_vanished:
+		is_vanished = false
+		modulate.a = 1.0
+	knockback_velocity = direction * force * 1.1
+	modulate = Color(1.5, 0.5, 0.5)
+	await get_tree().create_timer(0.08).timeout
+	if not is_dead:
+		modulate = Color.WHITE
 
 func _show_loot_popup(loot: Dictionary):
 	"""Show a brief loot notification above the enemy."""

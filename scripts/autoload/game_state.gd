@@ -1,6 +1,6 @@
 extends Node
 # GameState — Persistent save/load + progression tracking
-# v0.82 — ghost SFX, achievement/daily/streak sounds, volume controls
+# v0.84 — combo_master achievement, all 7 enemy types
 
 const SAVE_FILE := "user://swordjin_save.json"
 
@@ -259,6 +259,12 @@ const ACHIEVEMENTS := {
 		"description": "Find a legendary-rarity weapon drop.",
 		"category": "Mastery",
 	},
+	"combo_master": {
+		"name": "Combo King",
+		"icon": "🔥",
+		"description": "Land a 3-hit combo finisher.",
+		"category": "Combat",
+	},
 	# Streak (Retention)
 	"streak_3": {
 		"name": "Committed",
@@ -418,7 +424,7 @@ func _ready():
 
 func save_game():
 	var data := {
-		"version": "2.3",
+		"version": "2.4",
 		"current_act": current_act,
 		"current_chapter": current_chapter,
 		"completed_chapters": completed_chapters,
