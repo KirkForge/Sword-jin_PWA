@@ -1,6 +1,6 @@
 extends Node
 # GameState — Persistent save/load + progression tracking
-# v0.77 — achievement badges with unlock tracking and toast notifications
+# v0.78 — daily login streak with escalating rewards
 
 const SAVE_FILE := "user://swordjin_save.json"
 
@@ -259,11 +259,44 @@ const ACHIEVEMENTS := {
 		"description": "Find a legendary-rarity weapon drop.",
 		"category": "Mastery",
 	},
+	# Streak (Retention)
+	"streak_3": {
+		"name": "Committed",
+		"icon": "🔥",
+		"description": "Log in 3 days in a row.",
+		"category": "Mastery",
+	},
+	"streak_7": {
+		"name": "Unstoppable",
+		"icon": "🔥",
+		"description": "Log in 7 days in a row.",
+		"category": "Mastery",
+	},
 }
 
 # Achievement tracking (persisted)
 var achievements_unlocked: Dictionary = {}  # achievement_id → timestamp (float, OS.get_unix_time())
 signal achievement_unlocked(achievement_id: String, achievement_data: Dictionary)
+
+# ─── Daily Login Streak ───────────────────────────────────────────────────────
+# Consecutive days played → escalating gold + potion rewards
+# Streak breaks if >24h since last login
+# Streak caps at 7 days, then cycles (day 8 = day 1 rewards again, streak counter keeps going)
+
+const STREAK_REWARDS := {
+	1: {"gold": 10,  "potions": 0, "label": "Day 1 — 10g"},
+	2: {"gold": 20,  "potions": 1, "label": "Day 2 — 20g + 1🧪"},
+	3: {"gold": 30,  "potions": 1, "label": "Day 3 — 30g + 1🧪"},
+	4: {"gold": 50,  "potions": 2, "label": "Day 4 — 50g + 2🧪"},
+	5: {"gold": 75,  "potions": 2, "label": "Day 5 — 75g + 2🧪"},
+	6: {"gold": 100, "potions": 3, "label": "Day 6 — 100g + 3🧪"},
+	7: {"gold": 150, "potions": 3, "label": "Day 7 — 150g + 3🧪 🔥"},
+}
+
+var daily_streak: int = 0          # Consecutive days
+var last_login_date: String = ""   # YYYY-MM-DD format (UTC date)
+var streak_claimed_today: bool = false  # Whether today's reward was claimed
+signal streak_claimed(streak_day: int, rewards: Dictionary)
 
 # Loot tracking
 var chapter_loot: Array = []  # Runtime: items dropped this chapter run
@@ -275,7 +308,8 @@ var chapter_deaths: int = 0
 
 func _ready():
 	load_game()
-	print("GameState loaded — Act %d, Ch %d, Level %d, Weapon: %s, Skills: %s" % [current_act, current_chapter, player_level, equipped_weapon, str(equipped_skills)])
+	_check_daily_streak()
+	print("GameState loaded — Act %d, Ch %d, Level %d, Weapon: %s, Skills: %s, Streak: %d" % [current_act, current_chapter, player_level, equipped_weapon, str(equipped_skills), daily_streak])
 
 func save_game():
 	var data := {
@@ -299,6 +333,9 @@ func save_game():
 		"collected_weapons": collected_weapons,
 		"bestiary": bestiary,
 		"achievements_unlocked": achievements_unlocked,
+		"daily_streak": daily_streak,
+		"last_login_date": last_login_date,
+		"streak_claimed_today": streak_claimed_today,
 	}
 	
 	var file := FileAccess.open(SAVE_FILE, FileAccess.WRITE)
@@ -348,6 +385,9 @@ func load_game():
 		collected_weapons = data.get("collected_weapons", {})
 		bestiary = data.get("bestiary", {})
 		achievements_unlocked = data.get("achievements_unlocked", {})
+		daily_streak = data.get("daily_streak", 0)
+		last_login_date = data.get("last_login_date", "")
+		streak_claimed_today = data.get("streak_claimed_today", false)
 		settings = data.get("settings", {
 			"master_volume": 1.0, "sfx_volume": 1.0, "bgm_volume": 0.7,
 			"screen_shake": true, "hit_stop": true, "show_damage_numbers": true,
@@ -849,3 +889,106 @@ func get_achievements_by_category() -> Dictionary:
 		entry["unlock_time"] = achievements_unlocked.get(id, 0.0)
 		categories[cat].append(entry)
 	return categories
+
+# ─── Daily Login Streak System ──────────────────────────────────────────────
+
+func _check_daily_streak() -> void:
+	"""Check and update daily login streak. Call on game startup."""
+	var today := Time.get_datetime_string_from_system().split(" ")[0]  # YYYY-MM-DD
+	
+	if last_login_date.is_empty():
+		# First ever login
+		daily_streak = 1
+		last_login_date = today
+		streak_claimed_today = false
+		print("STREAK: First login! Day 1")
+		return
+	
+	if last_login_date == today:
+		# Same day — already logged in today
+		print("STREAK: Already logged in today (day %d)" % daily_streak)
+		return
+	
+	# Check if yesterday was the last login (consecutive)
+	var yesterday := _get_yesterday_date(last_login_date)
+	if today == yesterday or _is_next_day(last_login_date, today):
+		# Consecutive day
+		daily_streak += 1
+		last_login_date = today
+		streak_claimed_today = false
+		print("STREAK: Consecutive! Day %d" % daily_streak)
+	else:
+		# Streak broken — missed a day
+		daily_streak = 1
+		last_login_date = today
+		streak_claimed_today = false
+		print("STREAK: Broken! Reset to day 1")
+
+func claim_daily_streak() -> Dictionary:
+	"""Claim today's streak reward. Returns reward dict or empty if already claimed."""
+	if streak_claimed_today:
+		return {}
+	
+	var reward_day := ((daily_streak - 1) % 7) + 1  # Cycle 1-7
+	var rewards: Dictionary = STREAK_REWARDS.get(reward_day, STREAK_REWARDS[1]).duplicate()
+	
+	# Apply rewards
+	player_gold += rewards.get("gold", 0)
+	inventory["gold"] = player_gold
+	add_potion(rewards.get("potions", 0))
+	
+	streak_claimed_today = true
+	print("STREAK CLAIMED: Day %d → %s" % [daily_streak, rewards.get("label", "")])
+	streak_claimed.emit(daily_streak, rewards)
+	
+	# Check streak achievements
+	_check_streak_achievements()
+	
+	save_game()
+	return rewards
+
+func get_streak_info() -> Dictionary:
+	"""Get streak status for UI display."""
+	var reward_day := ((daily_streak - 1) % 7) + 1
+	var next_reward: Dictionary = STREAK_REWARDS.get(reward_day, STREAK_REWARDS[1])
+	return {
+		"streak": daily_streak,
+		"reward_day": reward_day,
+		"claimed_today": streak_claimed_today,
+		"next_reward": next_reward,
+		"days_to_cycle": 7 - reward_day,
+	}
+
+func _check_streak_achievements() -> void:
+	"""Check streak-related achievements."""
+	if daily_streak >= 3:
+		unlock_achievement("streak_3")
+	if daily_streak >= 7:
+		unlock_achievement("streak_7")
+
+func _get_yesterday_date(date_str: String) -> String:
+	"""Get the date string for the day before the given date."""
+	var parts := date_str.split("-")
+	var year := int(parts[0])
+	var month := int(parts[1])
+	var day := int(parts[2])
+	
+	# Convert to unix timestamp and subtract 86400
+	var epoch := Time.get_unix_time_from_datetime_dict({"year": year, "month": month, "day": day, "hour": 12, "minute": 0, "second": 0})
+	var yesterday_epoch := epoch - 86400
+	var yesterday_dict := Time.get_datetime_dict_from_unix_time(yesterday_epoch)
+	return "%04d-%02d-%02d" % [yesterday_dict["year"], yesterday_dict["month"], yesterday_dict["day"]]
+
+func _is_next_day(date1: String, date2: String) -> bool:
+	"""Check if date2 is the day after date1."""
+	var parts1 := date1.split("-")
+	var parts2 := date2.split("-")
+	var epoch1 := Time.get_unix_time_from_datetime_dict({
+		"year": int(parts1[0]), "month": int(parts1[1]), "day": int(parts1[2]),
+		"hour": 12, "minute": 0, "second": 0
+	})
+	var epoch2 := Time.get_unix_time_from_datetime_dict({
+		"year": int(parts2[0]), "month": int(parts2[1]), "day": int(parts2[2]),
+		"hour": 12, "minute": 0, "second": 0
+	})
+	return (epoch2 - epoch1) <= 86400 and epoch2 > epoch1

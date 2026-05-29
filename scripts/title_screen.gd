@@ -1,6 +1,6 @@
 extends Control
 # TitleScreen — Entry point: start, continue, chapter select
-# v0.77 — Added achievement screen button + toast + progress display
+# v0.78 — Added daily streak display + claim button
 
 @onready var start_btn = $CenterContainer/VBoxContainer/StartButton
 @onready var continue_btn = $CenterContainer/VBoxContainer/ContinueButton
@@ -11,6 +11,8 @@ extends Control
 @onready var collection_label = $CenterContainer/VBoxContainer/CollectionLabel
 @onready var bestiary_label = $CenterContainer/VBoxContainer/BestiaryLabel
 @onready var achievement_label = $CenterContainer/VBoxContainer/AchievementLabel
+@onready var streak_label = $CenterContainer/VBoxContainer/StreakLabel
+@onready var streak_claim_btn = $CenterContainer/VBoxContainer/StreakClaimButton
 @onready var chm = $ChapterManager
 
 var bestiary_screen: CanvasLayer = null
@@ -63,6 +65,26 @@ func _ready():
 			achievement_label.add_theme_color_override("font_color", Color(1.0, 0.843, 0.0))
 		else:
 			achievement_label.text = ""
+	
+	# Show daily streak
+	if streak_label:
+		var si := GameState.get_streak_info()
+		if si.streak > 0:
+			var fire := "🔥" if si.streak >= 3 else ""
+			streak_label.text = "%s Day %d Streak" % [fire, si.streak]
+			streak_label.add_theme_color_override("font_color", Color(1.0, 0.6, 0.2) if si.streak >= 3 else Color(0.7, 0.7, 0.7))
+		else:
+			streak_label.text = ""
+	
+	# Show streak claim button
+	if streak_claim_btn:
+		var si := GameState.get_streak_info()
+		if not si.claimed_today and si.streak > 0:
+			streak_claim_btn.text = "🔥 Claim Day %d Reward" % si.streak
+			streak_claim_btn.visible = true
+			streak_claim_btn.disabled = false
+		else:
+			streak_claim_btn.visible = false
 	
 	# Spawn achievement toast (listens for unlock signals globally)
 	if achievement_toast == null:
@@ -137,3 +159,22 @@ func _get_last_chapter() -> String:
 	if not next.is_empty():
 		return next
 	return last_id
+
+func _on_streak_claim_pressed():
+	AudioManager.play_sfx("ui_click")
+	var rewards := GameState.claim_daily_streak()
+	if rewards.is_empty():
+		return
+	
+	# Update UI
+	if streak_claim_btn:
+		streak_claim_btn.visible = false
+	if streak_label:
+		var si := GameState.get_streak_info()
+		var fire := "🔥" if si.streak >= 3 else ""
+		streak_label.text = "%s Day %d Streak ✅" % [fire, si.streak]
+	
+	# Show reward feedback via toast
+	if achievement_toast == null:
+		achievement_toast = load("res://scenes/ui/achievement_toast.tscn").instantiate()
+		add_child(achievement_toast)
