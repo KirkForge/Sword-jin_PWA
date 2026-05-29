@@ -131,6 +131,7 @@ func _update_label():
 
 func _die():
 	is_dead = true
+	GameState.record_kill("skeleton")
 	print("Skeleton defeated!")
 	
 	AudioManager.play_sfx("skeleton_death")

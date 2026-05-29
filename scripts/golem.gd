@@ -147,6 +147,7 @@ func _update_label():
 
 func _die():
 	is_dead = true
+	GameState.record_kill("golem")
 	ScreenShake.shake(8.0, 0.8)
 	HitStop.trigger_heavy()
 	modulate = Color(0.4, 0.3, 0.2)

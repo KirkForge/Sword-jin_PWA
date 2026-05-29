@@ -174,6 +174,7 @@ func _update_label():
 
 func _die():
 	is_dead = true
+	GameState.record_kill("assassin")
 	velocity = Vector2.ZERO
 	$CollisionShape2D.set_deferred("disabled", true)
 	attack_hitbox.set_deferred("disabled", true)

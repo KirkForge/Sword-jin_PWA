@@ -4,6 +4,7 @@ extends Control
 
 var is_paused := false
 var is_changing_scene := false
+var bestiary_screen: CanvasLayer = null
 
 # UI refs
 var bg: ColorRect
@@ -11,6 +12,7 @@ var vbox: VBoxContainer
 var resume_btn: Button
 var restart_btn: Button
 var mute_btn: Button
+var bestiar_btn: Button
 var quit_btn: Button
 
 # Called by parent scene
@@ -72,6 +74,10 @@ func _build_ui():
 	mute_btn = _make_btn("🔇  Mute", "_on_mute")
 	vbox.add_child(mute_btn)
 	
+	# Bestiary
+	bestiar_btn = _make_btn("📖  Bestiary", "_on_bestiary")
+	vbox.add_child(bestiary_btn)
+	
 	# Quit to title
 	quit_btn = _make_btn("✕  Quit to Title", "_on_quit")
 	vbox.add_child(quit_btn)
@@ -125,6 +131,17 @@ func _on_restart():
 func _on_mute():
 	AudioManager.set_volume(0.0 if AudioManager.master_volume > 0.0 else 0.8)
 	_update_mute_label()
+
+func _on_bestiary():
+	AudioManager.play_sfx("ui_click")
+	if bestiary_screen == null:
+		bestiary_screen = load("res://scenes/ui/bestiary_screen.tscn").instantiate()
+		bestiary_screen.closed.connect(_on_bestiary_closed)
+		add_child(bestiary_screen)
+	bestiary_screen.show_bestiary()
+
+func _on_bestiary_closed():
+	pass  # Bestiary handles its own hiding
 
 func _update_mute_label():
 	mute_btn.text = "🔇  Mute" if AudioManager.master_volume > 0.0 else "🔊  Unmute"

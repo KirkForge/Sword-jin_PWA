@@ -188,6 +188,7 @@ func _update_label():
 
 func _die():
 	is_dead = true
+	GameState.record_kill("skeleton_captain")
 	print("Captain defeated!")
 	
 	# Drop potion (50% chance — captains are more generous)

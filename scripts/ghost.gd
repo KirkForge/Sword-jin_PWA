@@ -166,6 +166,7 @@ func _update_label():
 
 func _die():
 	is_dead = true
+	GameState.record_kill("ghost")
 	modulate = Color(0.2, 0.2, 0.4, 0.3)
 	velocity = Vector2.ZERO
 	$CollisionShape2D.set_deferred("disabled", true)

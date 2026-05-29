@@ -5,9 +5,13 @@ extends Control
 @onready var start_btn = $CenterContainer/VBoxContainer/StartButton
 @onready var continue_btn = $CenterContainer/VBoxContainer/ContinueButton
 @onready var select_btn = $CenterContainer/VBoxContainer/SelectButton
+@onready var bestiary_btn = $CenterContainer/VBoxContainer/BestiaryButton
 @onready var stars_label = $CenterContainer/VBoxContainer/StarsLabel
 @onready var collection_label = $CenterContainer/VBoxContainer/CollectionLabel
+@onready var bestiary_label = $CenterContainer/VBoxContainer/BestiaryLabel
 @onready var chm = $ChapterManager
+
+var bestiary_screen: CanvasLayer = null
 
 func _ready():
 	start_btn.grab_focus()
@@ -37,6 +41,15 @@ func _ready():
 			collection_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
 		else:
 			collection_label.text = ""
+	
+	# Show bestiary progress
+	if bestiary_label:
+		var bp := GameState.get_bestiary_progress()
+		if bp.discovered > 0:
+			bestiary_label.text = "📖 %d / %d Enemies | %d Kills" % [bp.discovered, bp.total_types, bp.total_kills]
+			bestiary_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
+		else:
+			bestiary_label.text = ""
 
 func _on_start_pressed():
 	ChapterDatabase.set_current_chapter("act01_ch001")
@@ -64,6 +77,17 @@ func _on_select_pressed():
 
 func _on_chapter_back():
 	$CenterContainer.visible = true
+	start_btn.grab_focus()
+
+func _on_bestiary_pressed():
+	AudioManager.play_sfx("ui_click")
+	if bestiary_screen == null:
+		bestiary_screen = load("res://scenes/ui/bestiary_screen.tscn").instantiate()
+		bestiary_screen.closed.connect(_on_bestiary_closed)
+		add_child(bestiary_screen)
+	bestiary_screen.show_bestiary()
+
+func _on_bestiary_closed():
 	start_btn.grab_focus()
 
 func _get_last_chapter() -> String:
