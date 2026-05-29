@@ -4,28 +4,36 @@
   "act": 2,
   "chapter": 7,
   "type": "combat",
-  "playtime_estimate_minutes": 4,
+  "playtime_estimate_minutes": 5,
   "objective": "Survive the assassin ambush in the dark fortress",
   "background_color": [0.06, 0.04, 0.08],
   "theme": "dark_fortress",
-  "enemies": [
+  "waves": [
     {
-      "type": "assassin",
-      "count": 2,
-      "positions": [
-        {"x": 500, "y": 80},
-        {"x": 180, "y": 280}
-      ],
-      "stats": {"health": 45, "speed": 140, "damage": 20}
+      "label": "Archers First",
+      "enemies": [
+        {
+          "type": "skeleton_archer",
+          "positions": [
+            {"x": 550, "y": 180},
+            {"x": 100, "y": 100}
+          ],
+          "stats": {"health": 30, "speed": 50, "damage": 10}
+        }
+      ]
     },
     {
-      "type": "skeleton_archer",
-      "count": 2,
-      "positions": [
-        {"x": 550, "y": 180},
-        {"x": 100, "y": 100}
-      ],
-      "stats": {"health": 30, "speed": 50, "damage": 10}
+      "label": "Shadow Strike",
+      "enemies": [
+        {
+          "type": "assassin",
+          "positions": [
+            {"x": 500, "y": 80},
+            {"x": 180, "y": 280}
+          ],
+          "stats": {"health": 45, "speed": 140, "damage": 20}
+        }
+      ]
     }
   ],
   "dialogue": [

@@ -4,58 +4,52 @@
   "act": 1,
   "chapter": 3,
   "type": "combat",
-  "playtime_estimate_minutes": 3,
+  "playtime_estimate_minutes": 4,
   "objective": "Defeat the skeleton captain and his guards",
   "background_color": [
     0.18,
     0.08,
     0.05
   ],
-  "enemies": [
+  "waves": [
     {
-      "type": "skeleton",
-      "count": 3,
-      "positions": [
+      "label": "Undead Vanguard",
+      "enemies": [
         {
-          "x": 280,
-          "y": 100
-        },
-        {
-          "x": 520,
-          "y": 220
-        },
-        {
-          "x": 400,
-          "y": 300
+          "type": "skeleton",
+          "positions": [
+            {"x": 280, "y": 100},
+            {"x": 520, "y": 220},
+            {"x": 400, "y": 300}
+          ],
+          "stats": {"health": 40, "speed": 80, "damage": 10}
         }
-      ],
-      "stats": {
-        "health": 40,
-        "speed": 80,
-        "damage": 10
-      }
+      ]
     },
     {
-      "type": "skeleton_captain",
-      "count": 1,
-      "positions": [
+      "label": "The Captain",
+      "enemies": [
         {
-          "x": 600,
-          "y": 120
+          "type": "skeleton_captain",
+          "positions": [
+            {"x": 600, "y": 120}
+          ],
+          "stats": {"health": 120, "speed": 65, "damage": 22, "shield_max": 5}
+        },
+        {
+          "type": "skeleton",
+          "positions": [
+            {"x": 480, "y": 200}
+          ],
+          "stats": {"health": 35, "speed": 85, "damage": 10}
         }
-      ],
-      "stats": {
-        "health": 120,
-        "speed": 65,
-        "damage": 22,
-        "shield_max": 5
-      }
+      ]
     }
   ],
   "dialogue": [
     {
       "speaker": "JIN",
-      "text": "That dagger cuts cleaner. But it's not the blade that kills \u2014 it's the hand.",
+      "text": "That dagger cuts cleaner. But it's not the blade that kills — it's the hand.",
       "trigger": "start"
     },
     {

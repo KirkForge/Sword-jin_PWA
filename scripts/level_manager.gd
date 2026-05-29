@@ -1,5 +1,5 @@
 extends Node2D
-# LevelManager — v0.84 — All 7 enemy types spawnable, combo system, knockback
+# LevelManager — v0.85 — Wave system, cinematic crits, all 7 enemy types
 
 @onready var player = $Player
 @onready var skeleton_scene = preload("res://scenes/skeleton.tscn")
@@ -23,6 +23,14 @@ var arena: Node2D  # ArenaBuilder tilemap
 var ghost_runner_instance: CharacterBody2D = null  # Ghost replay sprite
 var ghost_active := false  # Whether ghost is currently being shown
 var ghost_best_time := 0.0  # Best time for current chapter (from ghost file)
+
+# Wave system
+var current_wave := 0
+var total_waves := 0
+var wave_data := []         # Array of wave definitions from chapter JSON
+var wave_spawned := false   # Whether current wave has been spawned
+var wave_cooldown := 0.0    # Delay between waves (seconds)
+const WAVE_COOLDOWN_TIME := 2.0  # Seconds between waves
 
 func _ready():
 	# Load chapter 001 by default
@@ -117,16 +125,27 @@ func _setup_level():
 		if child.is_in_group("enemy"):
 			child.queue_free()
 	
-	# Spawn from chapter data
-	var enemies = chapter_data.get("enemies", [])
-	for group in enemies:
-		var enemy_type = group.get("type", "skeleton")
-		var positions = group.get("positions", [])
-		var stats = group.get("stats", {})
-		
-		for pos_data in positions:
-			var pos = Vector2(pos_data.x, pos_data.y)
-			_spawn_enemy(enemy_type, pos, stats)
+	# Check for wave-based spawning
+	wave_data = chapter_data.get("waves", [])
+	
+	if wave_data.size() > 0:
+		# WAVE MODE: spawn waves one at a time
+		total_waves = wave_data.size()
+		current_wave = 0
+		wave_spawned = false
+		wave_cooldown = 0.0
+		_spawn_next_wave()
+	else:
+		# LEGACY MODE: spawn all enemies at once
+		var enemies = chapter_data.get("enemies", [])
+		for group in enemies:
+			var enemy_type = group.get("type", "skeleton")
+			var positions = group.get("positions", [])
+			var stats = group.get("stats", {})
+			
+			for pos_data in positions:
+				var pos = Vector2(pos_data.x, pos_data.y)
+				_spawn_enemy(enemy_type, pos, stats)
 	
 	# Spawn allies
 	var allies = chapter_data.get("allies", [])
@@ -256,7 +275,11 @@ func _update_combo_hud():
 		combo_label.text = ""
 		return
 	
-	if p.combo_active and p.combo_count > 0:
+	if p.last_hit_was_crit:
+		combo_label.text = "💥 CRIT!"
+		combo_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.0))
+		combo_label.add_theme_font_size_override("font_size", 22)
+	elif p.combo_active and p.combo_count > 0:
 		var hit_num = p.combo_count + 1
 		var combo_colors = [Color(1.0, 1.0, 1.0), Color(1.0, 0.9, 0.3), Color(1.0, 0.4, 0.1)]
 		var color = combo_colors[p.combo_count] if p.combo_count < combo_colors.size() else Color(1.0, 0.2, 0.2)
@@ -269,6 +292,90 @@ func _update_combo_hud():
 			combo_label.add_theme_font_size_override("font_size", 18)
 	else:
 		combo_label.text = ""
+
+# --- Wave System ---
+func _spawn_next_wave():
+	"""Spawn the next wave of enemies from wave_data."""
+	if current_wave >= total_waves:
+		return
+	
+	var wave = wave_data[current_wave]
+	wave_spawned = true
+	
+	var wave_label = wave.get("label", "Wave %d" % (current_wave + 1))
+	var enemies = wave.get("enemies", [])
+	
+	for group in enemies:
+		var enemy_type = group.get("type", "skeleton")
+		var positions = group.get("positions", [])
+		var stats = group.get("stats", {})
+		
+		for pos_data in positions:
+			var pos = Vector2(pos_data.x, pos_data.y)
+			_spawn_enemy(enemy_type, pos, stats)
+	
+	# Count enemies in this wave
+	enemies_remaining = 0
+	for child in get_children():
+		if child.is_in_group("enemy") and not child.is_dead:
+			enemies_remaining += 1
+	
+	# Update HUD
+	var wave_text = "WAVE %d/%d: %s" % [current_wave + 1, total_waves, wave_label]
+	$Objective.text = wave_text
+	print("[Wave] %s — %d enemies" % [wave_text, enemies_remaining])
+	
+	# Show wave announcement
+	_show_wave_announcement(current_wave + 1, total_waves, wave_label)
+
+func _process_waves(delta: float):
+	"""Check if current wave is cleared and spawn next wave."""
+	if current_wave >= total_waves:
+		return
+	
+	# Count live enemies
+	var live_enemies := 0
+	for child in get_children():
+		if child.is_in_group("enemy") and not child.is_dead:
+			live_enemies += 1
+	
+	if live_enemies == 0 and wave_spawned:
+		# Current wave cleared
+		current_wave += 1
+		wave_spawned = false
+		
+		if current_wave < total_waves:
+			# Start cooldown before next wave
+			wave_cooldown = WAVE_COOLDOWN_TIME
+			$Objective.text = "WAVE CLEARED! Next wave incoming..."
+		else:
+			# All waves done — chapter completes via the normal check
+			$Objective.text = "ALL WAVES CLEARED!"
+	
+	# Wave cooldown timer
+	if wave_cooldown > 0:
+		wave_cooldown -= delta
+		if wave_cooldown <= 0 and current_wave < total_waves and not wave_spawned:
+			_spawn_next_wave()
+
+func _show_wave_announcement(wave_num: int, total: int, label: String):
+	"""Show a brief wave announcement overlay."""
+	var announce := Label.new()
+	announce.text = "⚔ WAVE %d/%d ⚔\n%s" % [wave_num, total, label]
+	announce.add_theme_color_override("font_color", Color(1.0, 0.85, 0.2))
+	announce.add_theme_font_size_override("font_size", 24)
+	announce.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	announce.anchor_left = 0.0
+	announce.anchor_right = 1.0
+	announce.offset_top = 140.0
+	announce.offset_bottom = 200.0
+	announce.z_index = 100
+	add_child(announce)
+	
+	var tween := announce.create_tween().set_parallel()
+	tween.tween_property(announce, "modulate:a", 0.0, 2.0).set_delay(1.0)
+	tween.tween_property(announce, "position:y", announce.position.y - 20, 2.0)
+	tween.chain().tween_callback(announce.queue_free)
 
 func _spawn_enemy(type: String, pos: Vector2, stats: Dictionary):
 	var inst: CharacterBody2D
@@ -430,13 +537,23 @@ func _process(_delta):
 	# Update combo counter HUD
 	_update_combo_hud()
 	
+	# Wave system: check if current wave is cleared
+	if total_waves > 0:
+		_process_waves(_delta)
+	
 	if chapter_data.get("type", "combat") == "combat":
 		var live_enemies := 0
 		for child in get_children():
 			if child.is_in_group("enemy") and not child.is_dead:
 				live_enemies += 1
 		
-		if live_enemies == 0 and enemies_remaining > 0:
+		# Wave mode: don't complete chapter until all waves done
+		if total_waves > 0:
+			if live_enemies == 0 and wave_spawned and current_wave >= total_waves:
+				enemies_remaining = 0
+				_objective_complete()
+		elif live_enemies == 0 and enemies_remaining > 0:
+			# Legacy mode
 			# For ch004, wait for gate opening rather than auto-completing
 			var ch_id = chapter_data.get("chapter_id", "")
 			if ch_id == "act01_ch004":

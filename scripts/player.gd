@@ -1,6 +1,6 @@
 extends CharacterBody2D
 # Player — Jin the Swordmaster
-# v0.84 — 3-hit combo system, knockback on all attacks, enemy hit flash
+# v0.85 — cinematic crit system, 3-hit combo, knockback
 
 var damage_number_scene = preload("res://scenes/ui/damage_number.tscn")
 
@@ -18,6 +18,12 @@ const COMBO_KNOCKBACK := [80.0, 100.0, 150.0]  # Knockback force per hit
 var combo_count := 0            # Current combo hit (0-2)
 var combo_window_timer := 0.0  # Timer for chaining next hit
 var combo_active := false
+
+# --- Critical Hit System ---
+const CRIT_BASE_CHANCE := 0.10       # 10% base crit
+const CRIT_COMBO_BONUS := [0.0, 0.05, 0.15]  # Extra crit chance per combo hit
+const CRIT_DAMAGE_MULT := 2.0        # 2x damage on crit
+var last_hit_was_crit := false       # For other systems to check
 
 # Dodge roll
 const DODGE_DURATION := 0.25
@@ -37,6 +43,7 @@ const WHIRLWIND_RADIUS := 60
 var is_whirlwinding := false
 var whirlwind_timer := 0.0
 var whirlwind_cooldown_timer := 0.0
+var _whirlwind_crit_triggered := false
 
 # Shadow step
 const SHADOW_STEP_DISTANCE := 150
@@ -360,6 +367,11 @@ func _end_attack():
 func _release_heavy_attack():
 	is_charging = false
 	var charge_ratio = min(charge_time / CHARGE_MAX_TIME, 1.0)
+	
+	# Full charge guarantees a crit
+	if charge_ratio >= 1.0:
+		last_hit_was_crit = true
+	
 	var dmg = int(attack_damage * (1.0 + HEAVY_DAMAGE_MULT * charge_ratio) * GameState.damage_buff_mult)
 	
 	is_attacking = true
@@ -412,6 +424,7 @@ func _use_whirlwind():
 	attack_hitbox.disabled = false
 	sprite.play("attack")
 	AudioManager.play_random_pitch("sword_swing", 0.8, 1.0)
+	_whirlwind_crit_triggered = false
 	
 	# Hit ALL enemies in radius
 	var bodies = get_tree().get_nodes_in_group("enemies")
@@ -420,14 +433,24 @@ func _use_whirlwind():
 			continue
 		var dist = global_position.distance_to(body.global_position)
 		if dist <= WHIRLWIND_RADIUS:
+			var is_crit = randf() < CRIT_BASE_CHANCE
 			var dmg = int(attack_damage * GameState.get_skill_stats("whirlwind_slash").get("damage_mult", 1.5) * GameState.damage_buff_mult)
+			if is_crit:
+				dmg = int(dmg * CRIT_DAMAGE_MULT)
 			if body.has_method("take_damage"):
 				body.take_damage(dmg)
 				HitStop.trigger_light()
 			# Whirlwind knockback — push outward from player
 			if body.has_method("apply_knockback"):
 				var push_dir = (body.global_position - global_position).normalized()
-				body.apply_knockback(push_dir, 120.0)
+				var kb_force = 120.0
+				if is_crit:
+					kb_force *= 1.5
+				body.apply_knockback(push_dir, kb_force)
+			# Cinematic crit on whirlwind (only on first crit target)
+			if is_crit and not _whirlwind_crit_triggered:
+				_whirlwind_crit_triggered = true
+				CritEffect.trigger_crit(body.global_position)
 	
 	var tween = create_tween()
 	tween.tween_property(sprite, "rotation", TAU, WHIRLWIND_DURATION)
@@ -469,12 +492,18 @@ func _use_shadow_step():
 		modulate.a = 1.0
 		
 		# Stab
+		var is_shadow_crit = randf() < CRIT_BASE_CHANCE * 2.0  # Shadow step has double crit chance (backstab)
 		var stab_dmg = int(GameState.get_skill_stats("shadow_step").get("damage", 10) * GameState.damage_buff_mult)
+		if is_shadow_crit:
+			stab_dmg = int(stab_dmg * CRIT_DAMAGE_MULT)
 		if best_target.has_method("take_damage"):
 			best_target.take_damage(stab_dmg)
 		AudioManager.play_sfx("sword_hit")
-		HitStop.trigger_heavy()
-		print("SHADOW STEP! Behind %s → %d DMG" % [best_target.name, stab_dmg])
+		if is_shadow_crit:
+			CritEffect.trigger_crit(best_target.global_position)
+		else:
+			HitStop.trigger_heavy()
+		print("SHADOW STEP! Behind %s → %d DMG%s" % [best_target.name, stab_dmg, " CRIT!" if is_shadow_crit else ""])
 	else:
 		# No target — dash forward
 		var dash_pos = global_position + facing_dir * SHADOW_STEP_DISTANCE
@@ -500,22 +529,57 @@ func _on_attack_hitbox_body_entered(body):
 	if body.has_method("take_damage"):
 		# Combo damage multiplier
 		var dmg_mult = COMBO_DAMAGE_MULT[combo_count] if combo_active and combo_count < COMBO_DAMAGE_MULT.size() else 1.0
-		var dmg = int(attack_damage * dmg_mult * GameState.damage_buff_mult)
+		
+		# Critical hit roll — higher chance with combo
+		var crit_chance = CRIT_BASE_CHANCE
+		if combo_active and combo_count < CRIT_COMBO_BONUS.size():
+			crit_chance += CRIT_COMBO_BONUS[combo_count]
+		# Full-charge heavy attacks guarantee crit (set in _release_heavy_attack)
+		var is_crit = last_hit_was_crit if is_charging == false else last_hit_was_crit
+		if not is_crit:
+			is_crit = randf() < crit_chance
+		last_hit_was_crit = is_crit
+		
+		var dmg: int
+		if is_crit:
+			dmg = int(attack_damage * dmg_mult * CRIT_DAMAGE_MULT * GameState.damage_buff_mult)
+		else:
+			dmg = int(attack_damage * dmg_mult * GameState.damage_buff_mult)
+		
 		body.take_damage(dmg)
 		
 		# Knockback — push enemy away from player
 		if body.has_method("apply_knockback"):
 			var knockback_force = COMBO_KNOCKBACK[combo_count] if combo_active and combo_count < COMBO_KNOCKBACK.size() else 80.0
 			var dir = (body.global_position - global_position).normalized()
+			# Crits get extra knockback
+			if last_hit_was_crit:
+				knockback_force *= 1.5
 			body.apply_knockback(dir, knockback_force)
 		
-		AudioManager.play_random_pitch("sword_hit", 0.9, 1.1)
-		HitStop.trigger_light()
+		if last_hit_was_crit:
+			# CINEMATIC CRIT — slow-mo, zoom, sparks, flash
+			CritEffect.trigger_crit(body.global_position)
+			AudioManager.play_sfx("crit_hit")
+			GameState.unlock_achievement("first_crit")
+			GameState.record_crit()
+			# Spawn golden crit damage number
+			var crit_dn = damage_number_scene.instantiate() as Node2D
+			crit_dn.global_position = body.global_position + Vector2(0, -24)
+			get_tree().current_scene.add_child(crit_dn)
+			crit_dn.setup_crit(dmg)
+			# Crit counts as combo finisher juice too
+			ScreenShake.shake(4.0, 0.2)
+		else:
+			AudioManager.play_random_pitch("sword_hit", 0.9, 1.1)
+			HitStop.trigger_light()
 		
 		# Combo finisher (3rd hit) — extra juice
 		if combo_active and combo_count == COMBO_MAX - 1:
-			ScreenShake.shake(2.0, 0.15)
-			HitStop.trigger_heavy()
+			if not last_hit_was_crit:
+				ScreenShake.shake(2.0, 0.15)
+				HitStop.trigger_heavy()
+			GameState.unlock_achievement("combo_master")
 			GameState.unlock_achievement("combo_master")
 
 func get_current_health() -> int:

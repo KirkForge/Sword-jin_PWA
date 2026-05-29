@@ -1,6 +1,6 @@
 extends Node
 # GameState — Persistent save/load + progression tracking
-# v0.84 — combo_master achievement, all 7 enemy types
+# v0.85 — cinematic crits, crit tracking, wave system
 
 const SAVE_FILE := "user://swordjin_save.json"
 
@@ -67,6 +67,7 @@ var has_gate_key := false
 
 # Chapter State (runtime only)
 var chapter_kills: int = 0
+var total_crits: int = 0  # Lifetime crit count (persisted)
 var chapter_objectives_met: Dictionary = {}
 var is_paused: bool = false
 
@@ -265,6 +266,18 @@ const ACHIEVEMENTS := {
 		"description": "Land a 3-hit combo finisher.",
 		"category": "Combat",
 	},
+	"first_crit": {
+		"name": "Critical Eye",
+		"icon": "💫",
+		"description": "Land your first critical hit.",
+		"category": "Combat",
+	},
+	"crit_50": {
+		"name": "Death Precision",
+		"icon": "🎯",
+		"description": "Land 50 critical hits total.",
+		"category": "Mastery",
+	},
 	# Streak (Retention)
 	"streak_3": {
 		"name": "Committed",
@@ -424,7 +437,7 @@ func _ready():
 
 func save_game():
 	var data := {
-		"version": "2.4",
+		"version": "2.5",
 		"current_act": current_act,
 		"current_chapter": current_chapter,
 		"completed_chapters": completed_chapters,
@@ -443,6 +456,7 @@ func save_game():
 		"chapter_stars": chapter_stars,
 		"collected_weapons": collected_weapons,
 		"bestiary": bestiary,
+		"total_crits": total_crits,
 		"achievements_unlocked": achievements_unlocked,
 		"daily_streak": daily_streak,
 		"last_login_date": last_login_date,
@@ -501,6 +515,7 @@ func load_game():
 		chapter_stars = data.get("chapter_stars", {})
 		collected_weapons = data.get("collected_weapons", {})
 		bestiary = data.get("bestiary", {})
+		total_crits = data.get("total_crits", 0)
 		achievements_unlocked = data.get("achievements_unlocked", {})
 		daily_streak = data.get("daily_streak", 0)
 		last_login_date = data.get("last_login_date", "")
@@ -869,6 +884,12 @@ func record_kill(enemy_type: String) -> void:
 			print("BESTIARY LORE UNLOCK: %s at %d kills — %s" % [
 				entry.name, milestone, entry.lore[milestone].left(60) + "..."
 			])
+
+func record_crit() -> void:
+	"""Record a critical hit. Call from player on crit."""
+	total_crits += 1
+	if total_crits >= 50:
+		unlock_achievement("crit_50")
 	
 	# Check kill-based achievements
 	check_achievements()

@@ -64,7 +64,8 @@ func _load_all_sfx():
 		"ghost_finish",
 		"daily_challenge",
 		"achievement_unlock",
-		"streak_claim"
+		"streak_claim",
+		"crit_hit"
 	]
 	for name in files:
 		var path = SFX_DIR + name + ".wav"
