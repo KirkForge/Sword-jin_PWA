@@ -1,0 +1,12 @@
+<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+  <!-- Ice/frost status -->
+  <defs>
+    <linearGradient id="iceGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#e0ffff"/>
+      <stop offset="50%" stop-color="#87ceeb"/>
+      <stop offset="100%" stop-color="#4682b4"/>
+    </linearGradient>
+  </defs>
+  <polygon points="16,2 19,9 27,9 21,14 23,22 16,17 9,22 11,14 5,9 13,9" fill="url(#iceGrad)" stroke="#b0e0e6" stroke-width="0.5"/>
+  <polygon points="16,5 17,9 21,9 18,12 19,16 16,14 13,16 14,12 11,9 15,9" fill="#fff" opacity="0.4"/>
+</svg>

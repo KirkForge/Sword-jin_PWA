@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="orb" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#60a5fa"/>
+      <stop offset="100%" stop-color="#1e40af"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <merge>
+        <mergeNode in="coloredBlur"/>
+        <mergeNode in="SourceGraphic"/>
+      </merge>
+    </filter>
+  </defs>
+
+  <!-- Outer ring -->
+  <circle cx="32" cy="32" r="28" fill="none" stroke="url(#orb)" stroke-width="2" opacity="0.3"/>
+  <!-- Core -->
+  <circle cx="32" cy="32" r="20" fill="url(#orb)" filter="url(#glow)"/>
+  <!-- Starburst -->
+  <path d="M32 4 L34 24 L54 32 L34 34 L32 54 L30 34 L10 32 L30 24 Z" fill="#ffffff" opacity="0.4"/>
+  <!-- Inner highlight -->
+  <circle cx="26" cy="26" r="6" fill="#ffffff" opacity="0.5"/>
+</svg>

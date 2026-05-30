@@ -1,0 +1,18 @@
+<svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+  <!-- Legendary item border (gold/orange) -->
+  <defs>
+    <linearGradient id="legGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffd700"/>
+      <stop offset="50%" stop-color="#ff8c00"/>
+      <stop offset="100%" stop-color="#daa520"/>
+    </linearGradient>
+  </defs>
+  <rect x="2" y="2" width="44" height="44" rx="3" fill="#2a2010" stroke="url(#legGrad)" stroke-width="2.5"/>
+  <rect x="4" y="4" width="40" height="40" rx="2" fill="#1a1508"/>
+  <!-- Sparkle corner accents -->
+  <polygon points="6,6 7,8 9,9 7,10 6,12 5,10 3,9 5,8" fill="#ffd700"/>
+  <polygon points="42,6 43,8 45,9 43,10 42,12 41,10 39,9 41,8" fill="#ffd700"/>
+  <polygon points="6,42 7,44 9,45 7,46 6,48 5,46 3,45 5,44" fill="#ffd700"/>
+  <polygon points="42,42 43,44 45,45 43,46 42,48 41,46 39,45 41,44" fill="#ffd700"/>
+  <circle cx="24" cy="24" r="2" fill="#ffd700"/>
+</svg>

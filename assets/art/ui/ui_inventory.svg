@@ -1,0 +1,24 @@
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <!-- Inventory bag -->
+  <defs>
+    <linearGradient id="bagMain" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#8b4513"/>
+      <stop offset="50%" stop-color="#a0522d"/>
+      <stop offset="100%" stop-color="#5c3317"/>
+    </linearGradient>
+    <linearGradient id="bagFlap" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#a0522d"/>
+      <stop offset="100%" stop-color="#8b4513"/>
+    </linearGradient>
+  </defs>
+  <!-- Front body -->
+  <path d="M14 28 L50 28 C54 28, 56 32, 56 38 L56 54 C56 58, 52 60, 48 60 L16 60 C12 60, 8 58, 8 54 L8 38 C8 32, 10 28, 14 28 Z" fill="url(#bagMain)" rx="4"/>
+  <!-- Flap -->
+  <path d="M8 28 C8 18, 56 18, 56 28 L52 38 L12 38 Z" fill="url(#bagFlap)"/>
+  <rect x="12" y="28" width="40" height="4" fill="#5c3317"/>
+  <!-- Handle -->
+  <path d="M22 28 C22 14, 42 14, 42 28" fill="none" stroke="#5c3317" stroke-width="4"/>
+  <!-- Buckle -->
+  <path d="M28 30 L36 30 L35 34 L29 34 Z" fill="#d4a017"/>
+  <rect x="30" y="34" width="5" height="10" fill="#d4a017"/>
+</svg>

@@ -1,0 +1,23 @@
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <!-- Dust / movement particle burst -->
+  <defs>
+    <radialGradient id="dustGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#d3d3d3" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#a9a9a9" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <circle cx="32" cy="38" r="14" fill="url(#dustGrad)"/>
+  <!-- Dust puffs -->
+  <ellipse cx="22" cy="48" rx="4" ry="2" fill="#a9a9a9" opacity="0.6"/>
+  <ellipse cx="28" cy="52" rx="3" ry="1.5" fill="#a9a9a9" opacity="0.5"/>
+  <ellipse cx="38" cy="50" rx="4" ry="2" fill="#a9a9a9" opacity="0.6"/>
+  <ellipse cx="42" cy="46" rx="3" ry="1.5" fill="#a9a9a9" opacity="0.5"/>
+  <ellipse cx="18" cy="44" rx="3" ry="1.5" fill="#a9a9a9" opacity="0.4"/>
+  <ellipse cx="46" cy="42" rx="2" ry="1" fill="#a9a9a9" opacity="0.4"/>
+  <!-- Small specks -->
+  <circle cx="24" cy="42" r="1" fill="#d3d3d3"/>
+  <circle cx="36" cy="44" r="1" fill="#d3d3d3"/>
+  <circle cx="32" cy="50" r="1.5" fill="#d3d3d3"/>
+  <circle cx="20" cy="50" r="1" fill="#d3d3d3"/>
+  <circle cx="44" cy="48" r="1" fill="#d3d3d3"/>
+</svg>

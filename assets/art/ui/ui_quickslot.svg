@@ -1,0 +1,29 @@
+<svg viewBox="0 0 256 48" xmlns="http://www.w3.org/2000/svg">
+  <!-- Quickslot action bar frame (4 slots) -->
+  <defs>
+    <linearGradient id="slotBg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#2a2a2a"/>
+      <stop offset="100%" stop-color="#1a1a1a"/>
+    </linearGradient>
+    <linearGradient id="slotActive" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#444"/>
+      <stop offset="100%" stop-color="#222"/>
+    </linearGradient>
+  </defs>
+  <!-- Slot 1 -->
+  <rect x="4" y="4" width="56" height="40" rx="4" fill="url(#slotBg)" stroke="#555" stroke-width="2"/>
+  <rect x="6" y="6" width="52" height="36" rx="3" fill="#111"/>
+  <text x="32" y="30" font-family="Arial,sans-serif" font-weight="bold" font-size="16" fill="#aaa" text-anchor="middle">1</text>
+  <!-- Slot 2 (active/highlighted) -->
+  <rect x="68" y="4" width="56" height="40" rx="4" fill="url(#slotActive)" stroke="#ffd700" stroke-width="2"/>
+  <rect x="70" y="6" width="52" height="36" rx="3" fill="#111"/>
+  <text x="96" y="30" font-family="Arial,sans-serif" font-weight="bold" font-size="16" fill="#ffd700" text-anchor="middle">2</text>
+  <!-- Slot 3 -->
+  <rect x="132" y="4" width="56" height="40" rx="4" fill="url(#slotBg)" stroke="#555" stroke-width="2"/>
+  <rect x="134" y="6" width="52" height="36" rx="3" fill="#111"/>
+  <text x="160" y="30" font-family="Arial,sans-serif" font-weight="bold" font-size="16" fill="#aaa" text-anchor="middle">3</text>
+  <!-- Slot 4 -->
+  <rect x="196" y="4" width="56" height="40" rx="4" fill="url(#slotBg)" stroke="#555" stroke-width="2"/>
+  <rect x="198" y="6" width="52" height="36" rx="3" fill="#111"/>
+  <text x="224" y="30" font-family="Arial,sans-serif" font-weight="bold" font-size="16" fill="#aaa" text-anchor="middle">4</text>
+</svg>

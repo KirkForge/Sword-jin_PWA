@@ -1,0 +1,13 @@
+<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+  <!-- Fire status -->
+  <defs>
+    <linearGradient id="fireGrad" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" stop-color="#ff4500"/>
+      <stop offset="40%" stop-color="#ff6347"/>
+      <stop offset="70%" stop-color="#ffd700"/>
+      <stop offset="100%" stop-color="#fffacd"/>
+    </linearGradient>
+  </defs>
+  <path d="M4 28 Q3 18, 10 12 Q8 16, 12 20 Q14 10, 22 6 Q18 14, 20 18 Q22 14, 26 16 Q22 22, 26 28 Z" fill="url(#fireGrad)"/>
+  <path d="M10 28 Q12 22, 16 18 Q14 24, 18 28 Z" fill="#fff" opacity="0.4"/>
+</svg>

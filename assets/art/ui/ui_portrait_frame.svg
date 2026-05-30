@@ -1,0 +1,20 @@
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <!-- Character portrait frame -->
+  <defs>
+    <linearGradient id="portGold" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffd700"/>
+      <stop offset="50%" stop-color="#daa520"/>
+      <stop offset="100%" stop-color="#b8860b"/>
+    </linearGradient>
+  </defs>
+  <circle cx="32" cy="32" r="30" fill="#111" stroke="url(#portGold)" stroke-width="3"/>
+  <circle cx="32" cy="32" r="26" fill="#1a1a2e"/>
+  <!-- Corner filigree -->
+  <path d="M8 12 Q12 8, 16 8" fill="none" stroke="url(#portGold)" stroke-width="2"/>
+  <path d="M56 12 Q52 8, 48 8" fill="none" stroke="url(#portGold)" stroke-width="2"/>
+  <path d="M8 52 Q12 56, 16 56" fill="none" stroke="url(#portGold)" stroke-width="2"/>
+  <path d="M56 52 Q52 56, 48 56" fill="none" stroke="url(#portGold)" stroke-width="2"/>
+  <!-- Placeholder head silhouette -->
+  <circle cx="32" cy="24" r="8" fill="#555"/>
+  <path d="M22 42 Q32 32, 42 42 L42 48 L22 48 Z" fill="#555"/>
+</svg>

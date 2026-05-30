@@ -1,0 +1,28 @@
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <!-- Trap / spike hazard -->
+  <defs>
+    <linearGradient id="trapBase" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#616161"/>
+      <stop offset="100%" stop-color="#212121"/>
+    </linearGradient>
+    <linearGradient id="trapSpike" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#a9a9a9"/>
+      <stop offset="50%" stop-color="#808080"/>
+      <stop offset="100%" stop-color="#404040"/>
+    </linearGradient>
+    <radialGradient id="trapGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#e94560" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#e94560" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect x="4" y="40" width="56" height="20" rx="2" fill="url(#trapBase)"/>
+  <circle cx="32" cy="36" r="20" fill="url(#trapGlow)"/>
+  <!-- Spikes -->
+  <polygon points="8,40 12,14 16,40" fill="url(#trapSpike)"/>
+  <polygon points="18,40 22,6 26,40" fill="url(#trapSpike)"/>
+  <polygon points="28,40 32,10 36,40" fill="url(#trapSpike)"/>
+  <polygon points="38,40 42,4 46,40" fill="url(#trapSpike)"/>
+  <polygon points="48,40 52,16 56,40" fill="url(#trapSpike)"/>
+  <!-- Blood stain -->
+  <ellipse cx="32" cy="56" rx="14" ry="3" fill="#8b0000" opacity="0.5"/>
+</svg>

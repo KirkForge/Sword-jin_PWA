@@ -1,0 +1,30 @@
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <!-- Grass terrain tile -->
+  <defs>
+    <linearGradient id="grassBase" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#5d8a3b"/>
+      <stop offset="50%" stop-color="#4a7030"/>
+      <stop offset="100%" stop-color="#3d5c28"/>
+    </linearGradient>
+    <linearGradient id="grassHigh" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#7cb342"/>
+      <stop offset="100%" stop-color="#689f38"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" fill="url(#grassBase)"/>
+  <!-- Blades pattern -->
+  <g fill="url(#grassHigh)">
+    <path d="M4 20 Q6 8, 8 20 Z"/>
+    <path d="M12 30 Q15 15, 18 30 Z"/>
+    <path d="M24 24 Q26 12, 28 24 Z"/>
+    <path d="M34 26 Q36 10, 38 26 Z"/>
+    <path d="M44 32 Q47 16, 50 32 Z"/>
+    <path d="M52 20 Q54 8, 56 20 Z"/>
+    <path d="M2 40 Q4 26, 6 40 Z"/>
+    <path d="M14 48 Q17 32, 20 48 Z"/>
+    <path d="M28 44 Q30 28, 32 44 Z"/>
+    <path d="M38 50 Q41 34, 44 50 Z"/>
+    <path d="M48 42 Q50 26, 52 42 Z"/>
+    <path d="M56 56 Q58 42, 60 56 Z"/>
+  </g>
+</svg>

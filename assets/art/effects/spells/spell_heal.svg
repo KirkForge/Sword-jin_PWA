@@ -1,0 +1,25 @@
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <!-- Heal / Holy light spell -->
+  <defs>
+    <radialGradient id="hlGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fff" stop-opacity="1"/>
+      <stop offset="30%" stop-color="#e0ffff" stop-opacity="0.8"/>
+      <stop offset="60%" stop-color="#87ceeb" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#fff" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="hlCross" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#fffacd"/>
+      <stop offset="50%" stop-color="#ffd700"/>
+      <stop offset="100%" stop-color="#daa520"/>
+    </linearGradient>
+  </defs>
+  <circle cx="32" cy="32" r="26" fill="url(#hlGlow)"/>
+  <!-- Cross / plus symbol -->
+  <rect x="26" y="8" width="12" height="48" rx="2" fill="url(#hlCross)"/>
+  <rect x="8" y="26" width="48" height="12" rx="2" fill="url(#hlCross)"/>
+  <!-- Sparkles -->
+  <polygon points="10,8 11,11 14,12 11,13 10,16 9,13 6,12 9,11" fill="#ffd700"/>
+  <polygon points="54,4 55,7 58,8 55,9 54,12 53,9 50,8 53,7" fill="#ffd700"/>
+  <polygon points="8,50 9,53 12,54 9,55 8,58 7,55 4,54 7,53" fill="#e0ffff"/>
+  <polygon points="52,52 53,55 56,56 53,57 52,60 51,57 48,56 51,55" fill="#e0ffff"/>
+</svg>

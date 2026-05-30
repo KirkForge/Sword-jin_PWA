@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="scrollPaper" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#fef3c7"/>
+      <stop offset="50%" stop-color="#fffbeb"/>
+      <stop offset="100%" stop-color="#fde68a"/>
+    </linearGradient>
+    <linearGradient id="scrollRoll" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#78350f"/>
+      <stop offset="50%" stop-color="#92400e"/>
+      <stop offset="100%" stop-color="#78350f"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Paper -->
+  <rect x="8" y="12" width="48" height="40" rx="2" fill="url(#scrollPaper)"/>
+  <!-- Lines (quest text) -->
+  <rect x="16" y="24" width="32" height="2" rx="1" fill="#b45309" opacity="0.4"/>
+  <rect x="16" y="32" width="24" height="2" rx="1" fill="#b45309" opacity="0.4"/>
+  <rect x="16" y="40" width="28" height="2" rx="1" fill="#b45309" opacity="0.4"/>
+  <!-- Top roller -->
+  <rect x="6" y="4" width="52" height="10" rx="4" fill="url(#scrollRoll)"/>
+  <!-- Bottom roller -->
+  <rect x="6" y="50" width="52" height="10" rx="4" fill="url(#scrollRoll)"/>
+  <!-- Red seal -->
+  <circle cx="48" cy="44" r="6" fill="#dc2626" stroke="#7f1d1d" stroke-width="0.5"/>
+  <!-- Seal star -->
+  <path d="M48 40 L49.5 43 L53 43.5 L50 46 L50.8 49.5 L48 47.5 L45.2 49.5 L46 46 L43 43.5 L46.5 43 Z" fill="#fecaca"/>
+</svg>

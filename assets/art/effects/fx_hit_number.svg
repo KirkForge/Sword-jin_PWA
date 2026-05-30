@@ -1,0 +1,7 @@
+<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+  <!-- Normal hit damage number -->
+  <text x="16" y="22" font-family="Arial Black,sans-serif" font-weight="900" font-size="13" fill="#ff4500" text-anchor="middle">-42</text>
+  <text x="16" y="22" font-family="Arial Black,sans-serif" font-weight="900" font-size="13" fill="#fff" text-anchor="middle" opacity="0.4">-42</text>
+  <!-- Small slash accent -->
+  <line x1="6" y1="8" x2="26" y2="24" stroke="#ff6347" stroke-width="1.5" opacity="0.5"/>
+</svg>

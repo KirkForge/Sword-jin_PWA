@@ -1,0 +1,25 @@
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <!-- Minimap circular frame -->
+  <defs>
+    <linearGradient id="mapBg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1a1a2e"/>
+      <stop offset="100%" stop-color="#16213e"/>
+    </linearGradient>
+    <linearGradient id="mapFrame" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#daa520"/>
+      <stop offset="100%" stop-color="#b8860b"/>
+    </linearGradient>
+  </defs>
+  <circle cx="32" cy="32" r="30" fill="url(#mapBg)" stroke="url(#mapFrame)" stroke-width="2"/>
+  <!-- Simplified terrain blobs -->
+  <polygon points="16,24 24,18 28,26 20,30" fill="#2e7d32" opacity="0.7"/>
+  <polygon points="40,36 50,30 54,38 44,44" fill="#5d4037" opacity="0.7"/>
+  <rect x="26" y="28" width="12" height="8" fill="#616161" opacity="0.7"/>
+  <!-- Path lines -->
+  <line x1="22" y1="24" x2="32" y2="32" stroke="#a9a9a9" stroke-width="1" opacity="0.5"/>
+  <line x1="32" y1="32" x2="44" y2="38" stroke="#a9a9a9" stroke-width="1" opacity="0.5"/>
+  <!-- Player arrow -->
+  <polygon points="32,28 36,36 32,34 28,36" fill="#ffd700"/>
+  <!-- N indicator -->
+  <text x="32" y="8" font-family="Arial,sans-serif" font-weight="bold" font-size="6" fill="#daa520" text-anchor="middle">N</text>
+</svg>

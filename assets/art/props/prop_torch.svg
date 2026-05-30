@@ -1,0 +1,29 @@
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <!-- Torch environment prop -->
+  <defs>
+    <linearGradient id="toWood" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#5c3317"/>
+      <stop offset="100%" stop-color="#3d1c0c"/>
+    </linearGradient>
+    <linearGradient id="toFlame" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" stop-color="#ff4500"/>
+      <stop offset="50%" stop-color="#ff8c00"/>
+      <stop offset="100%" stop-color="#ffd700"/>
+    </linearGradient>
+    <radialGradient id="toGlow" cx="50%" cy="30%" r="50%">
+      <stop offset="0%" stop-color="#ff8c00" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#ff4500" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <!-- Wall mount bracket -->
+  <rect x="4" y="28" width="20" height="6" rx="1" fill="#696969"/>
+  <rect x="22" y="26" width="4" height="10" fill="#696969"/>
+  <!-- Flame aura -->
+  <ellipse cx="24" cy="14" rx="18" ry="16" fill="url(#toGlow)"/>
+  <!-- Flame body -->
+  <path d="M18 22 Q20 4, 24 2 Q28 4, 30 22 Q24 18, 18 22 Z" fill="url(#toFlame)"/>
+  <path d="M20 20 Q22 10, 24 8 Q26 10, 28 20 Q24 18, 20 20 Z" fill="#fffacd" opacity="0.6"/>
+  <!-- Torch cup -->
+  <path d="M18 22 L30 22 L28 28 L20 28 Z" fill="url(#toWood)"/>
+  <rect x="22" y="28" width="4" height="14" fill="url(#toWood)"/>
+</svg>

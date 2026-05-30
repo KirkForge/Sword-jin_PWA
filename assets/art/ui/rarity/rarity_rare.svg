@@ -1,0 +1,12 @@
+<svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+  <!-- Rare item border (blue) -->
+  <defs>
+    <linearGradient id="rareGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#87ceeb"/>
+      <stop offset="100%" stop-color="#4682b4"/>
+    </linearGradient>
+  </defs>
+  <rect x="2" y="2" width="44" height="44" rx="3" fill="#1a2a3a" stroke="url(#rareGrad)" stroke-width="2"/>
+  <rect x="4" y="4" width="40" height="40" rx="2" fill="#0f1a2a"/>
+  <circle cx="24" cy="24" r="2" fill="#87ceeb"/>
+</svg>

@@ -1,0 +1,19 @@
+<svg viewBox="0 0 128 20" xmlns="http://www.w3.org/2000/svg">
+  <!-- Experience bar -->
+  <defs>
+    <linearGradient id="xpBar" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#9c27b0"/>
+      <stop offset="50%" stop-color="#7b1fa2"/>
+      <stop offset="100%" stop-color="#4a148c"/>
+    </linearGradient>
+    <linearGradient id="xpBg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#424242"/>
+      <stop offset="100%" stop-color="#1a1a1a"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="0" width="128" height="20" rx="3" fill="url(#xpBg)" stroke="#222" stroke-width="1"/>
+  <rect x="2" y="2" width="76" height="16" rx="2" fill="url(#xpBar)"/>
+  <!-- Star icon left -->
+  <polygon points="10,4 12,10 18,10 13,14 15,20 10,16 5,20 7,14 2,10 8,10" fill="#e040fb" transform="scale(0.65) translate(5,2)"/>
+  <text x="64" y="14.5" font-family="Arial,sans-serif" font-weight="bold" font-size="11" fill="#fff" text-anchor="middle">XP 7600/10000</text>
+</svg>

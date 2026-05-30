@@ -1,0 +1,20 @@
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <!-- Rain weather overlay -->
+  <defs>
+    <linearGradient id="rainGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#87ceeb" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#4682b4" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="0" width="64" height="64" fill="#0f3460" opacity="0.2"/>
+  <line x1="8" y1="4" x2="4" y2="20" stroke="url(#rainGrad)" stroke-width="1.5"/>
+  <line x1="20" y1="8" x2="16" y2="24" stroke="url(#rainGrad)" stroke-width="1.5"/>
+  <line x1="32" y1="2" x2="28" y2="18" stroke="url(#rainGrad)" stroke-width="1.5"/>
+  <line x1="44" y1="12" x2="40" y2="28" stroke="url(#rainGrad)" stroke-width="1.5"/>
+  <line x1="56" y1="6" x2="52" y2="22" stroke="url(#rainGrad)" stroke-width="1.5"/>
+  <line x1="14" y1="28" x2="10" y2="44" stroke="url(#rainGrad)" stroke-width="1.5"/>
+  <line x1="38" y1="32" x2="34" y2="48" stroke="url(#rainGrad)" stroke-width="1.5"/>
+  <line x1="26" y1="36" x2="22" y2="52" stroke="url(#rainGrad)" stroke-width="1.5"/>
+  <line x1="50" y1="38" x2="46" y2="54" stroke="url(#rainGrad)" stroke-width="1.5"/>
+  <line x1="62" y1="30" x2="58" y2="46" stroke="url(#rainGrad)" stroke-width="1.5"/>
+</svg>

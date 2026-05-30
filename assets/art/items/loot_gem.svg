@@ -1,0 +1,31 @@
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <!-- Gem / rare currency -->
+  <defs>
+    <linearGradient id="gemMain" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#e0ffff"/>
+      <stop offset="40%" stop-color="#00bfff"/>
+      <stop offset="100%" stop-color="#1a3a5a"/>
+    </linearGradient>
+    <linearGradient id="gemFacet" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fff"/>
+      <stop offset="50%" stop-color="#87ceeb"/>
+      <stop offset="100%" stop-color="#4682b4"/>
+    </linearGradient>
+    <radialGradient id="gemGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#00bfff" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#00bfff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <circle cx="32" cy="32" r="24" fill="url(#gemGlow)"/>
+  <!-- Main crystal shape -->
+  <polygon points="32,8 48,20 48,44 32,56 16,44 16,20" fill="url(#gemMain)"/>
+  <!-- Facets -->
+  <polygon points="32,8 40,20 32,20" fill="#fff" opacity="0.4"/>
+  <polygon points="32,8 24,20 32,20" fill="#87ceeb" opacity="0.3"/>
+  <polygon points="16,20 24,20 24,32 16,44" fill="url(#gemFacet)" opacity="0.5"/>
+  <polygon points="48,20 40,20 40,32 48,44" fill="url(#gemFacet)" opacity="0.5"/>
+  <polygon points="24,20 40,20 40,32 24,32" fill="#fff" opacity="0.2"/>
+  <polygon points="24,32 40,32 32,56" fill="url(#gemFacet)" opacity="0.6"/>
+  <!-- Center highlight -->
+  <polygon points="32,20 36,26 32,32 28,26" fill="#fff" opacity="0.5"/>
+</svg>

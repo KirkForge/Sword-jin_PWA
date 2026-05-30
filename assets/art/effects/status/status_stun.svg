@@ -1,0 +1,16 @@
+<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+  <!-- Stun/dazed status -->
+  <defs>
+    <linearGradient id="stunGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffd700"/>
+      <stop offset="100%" stop-color="#ffa500"/>
+    </linearGradient>
+  </defs>
+  <circle cx="16" cy="16" r="10" fill="#333"/>
+  <circle cx="16" cy="16" r="7" fill="url(#stunGrad)"/>
+  <text x="16" y="21.5" font-family="Arial,sans-serif" font-weight="bold" font-size="14" fill="#fff" text-anchor="middle">!</text>
+  <!-- Sparkles -->
+  <polygon points="6,4 7,7 10,8 7,9 6,12 5,9 2,8 5,7" fill="#ffd700"/>
+  <polygon points="26,4 27,7 30,8 27,9 26,12 25,9 22,8 25,7" fill="#ffd700"/>
+  <polygon points="16,2 16.5,4 19,4.5 16.5,5 16,7 15.5,5 13,4.5 15.5,4" fill="#ffa500"/>
+</svg>

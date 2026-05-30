@@ -1,0 +1,7 @@
+<svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+  <!-- Common item border (grey) -->
+  <rect x="2" y="2" width="44" height="44" rx="3" fill="#2a2a2a" stroke="#a9a9a9" stroke-width="2"/>
+  <rect x="4" y="4" width="40" height="40" rx="2" fill="#1a1a1a"/>
+  <!-- Small dot indicator -->
+  <circle cx="24" cy="24" r="2" fill="#a9a9a9"/>
+</svg>

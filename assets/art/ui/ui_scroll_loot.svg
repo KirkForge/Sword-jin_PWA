@@ -1,0 +1,26 @@
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <!-- Loot / reward scroll paper -->
+  <defs>
+    <linearGradient id="paperGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#f5f5dc"/>
+      <stop offset="50%" stop-color="#eee8aa"/>
+      <stop offset="100%" stop-color="#d2b48c"/>
+    </linearGradient>
+    <linearGradient id="scrollSeal" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffd700"/>
+      <stop offset="100%" stop-color="#daa520"/>
+    </linearGradient>
+  </defs>
+  <!-- Paper body -->
+  <rect x="8" y="8" width="48" height="44" rx="3" fill="url(#paperGrad)" stroke="#d2b48c" stroke-width="1"/>
+  <!-- Rolled edges -->
+  <rect x="6" y="10" width="6" height="40" rx="2" fill="#d2b48c"/>
+  <rect x="52" y="10" width="6" height="40" rx="2" fill="#d2b48c"/>
+  <!-- Seal / wax stamp -->
+  <circle cx="32" cy="30" r="8" fill="url(#scrollSeal)" stroke="#b8860b" stroke-width="1"/>
+  <!-- Star in seal -->
+  <polygon points="32,24 34,28 38,28 35,31 36,35 32,33 28,35 29,31 26,28 30,28" fill="#b8860b"/>
+  <!-- Decorative lines -->
+  <line x1="16" y1="16" x2="48" y2="16" stroke="#d2b48c" stroke-width="1"/>
+  <line x1="16" y1="44" x2="48" y2="44" stroke="#d2b48c" stroke-width="1"/>
+</svg>

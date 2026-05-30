@@ -1,0 +1,22 @@
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <!-- Level up burst effect -->
+  <defs>
+    <radialGradient id="lvlCore" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fff" stop-opacity="1"/>
+      <stop offset="40%" stop-color="#ffd700" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#ffd700" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <circle cx="32" cy="32" r="30" fill="url(#lvlCore)"/>
+  <!-- Rays -->
+  <polygon points="32,0 34,14 30,14" fill="#ffd700" opacity="0.8"/>
+  <polygon points="32,64 34,50 30,50" fill="#ffd700" opacity="0.8"/>
+  <polygon points="0,32 14,34 14,30" fill="#ffd700" opacity="0.8"/>
+  <polygon points="64,32 50,34 50,30" fill="#ffd700" opacity="0.8"/>
+  <polygon points="8,8 18,18 16,20" fill="#ffd700" opacity="0.6"/>
+  <polygon points="56,8 46,18 48,20" fill="#ffd700" opacity="0.6"/>
+  <polygon points="8,56 18,46 16,44" fill="#ffd700" opacity="0.6"/>
+  <polygon points="56,56 46,46 48,44" fill="#ffd700" opacity="0.6"/>
+  <!-- Level text -->
+  <text x="32" y="37" font-family="Arial Black,sans-serif" font-weight="900" font-size="12" fill="#b8860b" text-anchor="middle">LVL UP!</text>
+</svg>

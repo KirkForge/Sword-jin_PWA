@@ -1,0 +1,20 @@
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <!-- Bow weapon -->
+  <defs>
+    <linearGradient id="bwWood" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#5c3317"/>
+      <stop offset="50%" stop-color="#8b4513"/>
+      <stop offset="100%" stop-color="#3d1c0c"/>
+    </linearGradient>
+  </defs>
+  <!-- Bow curve -->
+  <path d="M18 6 C18 6, 6 24, 9 44 C11 56, 18 58, 18 58" fill="none" stroke="url(#bwWood)" stroke-width="5" stroke-linecap="round"/>
+  <!-- String -->
+  <line x1="18" y1="6" x2="18" y2="58" stroke="#d3d3d3" stroke-width="1.2"/>
+  <!-- Knocked arrow -->
+  <line x1="30" y1="32" x2="14" y2="32" stroke="#5c3317" stroke-width="2"/>
+  <rect x="30" y="30" width="3" height="4" fill="#a9a9a9"/>
+  <path d="M14 32 L10 30 L10 34 Z" fill="#a9a9a9"/>
+  <!-- Grip wrap -->
+  <rect x="16" y="28" width="6" height="8" fill="#2a1f15"/>
+</svg>

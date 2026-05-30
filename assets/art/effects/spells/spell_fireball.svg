@@ -1,0 +1,23 @@
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <!-- Fireball spell projectile -->
+  <defs>
+    <radialGradient id="fbCore" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fff"/>
+      <stop offset="30%" stop-color="#ffd700"/>
+      <stop offset="70%" stop-color="#ff4500"/>
+      <stop offset="100%" stop-color="#8b0000" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="fbOuter" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ff6347" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#ff4500" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <circle cx="32" cy="32" r="20" fill="url(#fbOuter)"/>
+  <circle cx="32" cy="32" r="12" fill="url(#fbCore)"/>
+  <circle cx="32" cy="32" r="6" fill="#fff" opacity="0.7"/>
+  <!-- Flame licks -->
+  <path d="M16 32 Q12 20, 22 16 Q18 24, 24 28 Z" fill="#ff4500" opacity="0.7"/>
+  <path d="M48 32 Q52 20, 42 16 Q46 24, 40 28 Z" fill="#ff4500" opacity="0.7"/>
+  <path d="M32 16 Q24 10, 28 6 Q30 12, 32 14 Z" fill="#ffd700" opacity="0.8"/>
+  <path d="M32 48 Q40 54, 36 58 Q34 52, 32 50 Z" fill="#ff4500" opacity="0.7"/>
+</svg>

@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 48" width="32" height="48">
+  <defs>
+    <linearGradient id="marker" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ef4444"/>
+      <stop offset="100%" stop-color="#991b1b"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Pin body -->
+  <path d="M16 2 C8 2 2 8 2 14 C2 22 16 46 16 46 C16 46 30 22 30 14 C30 8 24 2 16 2 Z" fill="url(#marker)" stroke="#7f1d1d" stroke-width="1"/>
+  <!-- Inner dot -->
+  <circle cx="16" cy="14" r="6" fill="#ffffff"/>
+  <!-- Skull icon -->
+  <circle cx="16" cy="14" r="3" fill="#1f2937"/>
+</svg>
