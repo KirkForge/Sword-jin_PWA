@@ -9,12 +9,32 @@ const TILE_SIZE := 16
 const ARENA_W := 40   # 40 tiles × 16px = 640px
 const ARENA_H := 22   # 22 tiles × 16px = 352px (leaves 8px for UI at bottom)
 
-# Theme mapping from chapter_id to tileset
+# Theme mapping from chapter_id to tileset + background
 const CHAPTER_THEMES := {
 	"act01_ch001": "field",
 	"act01_ch002": "forest",
 	"act01_ch003": "fortress",
 	"act01_ch004": "dark_fortress",
+	"act02_ch005": "forest",
+	"act02_ch006": "fortress",
+	"act02_ch007": "dark_fortress",
+	"act02_ch008": "dark_fortress",
+	"act02_ch009": "field",
+	"act02_ch010": "fortress",
+}
+
+# Chapter background image mapping
+const CHAPTER_BACKGROUNDS := {
+	"act01_ch001": "res://assets/art/bg/ch01_rusted_blade.png",
+	"act01_ch002": "res://assets/art/bg/ch02_merchant_plea.png",
+	"act01_ch003": "res://assets/art/bg/ch03_iron_gate.png",
+	"act01_ch004": "res://assets/art/bg/ch04_gate_opens.png",
+	"act02_ch005": "res://assets/art/bg/ch05_merchant_trail.png",
+	"act02_ch006": "res://assets/art/bg/ch06_whispering_ruins.png",
+	"act02_ch007": "res://assets/art/bg/ch07_assassin_gambit.png",
+	"act02_ch008": "res://assets/art/bg/ch08_crimson_lieutenant.png",
+	"act02_ch009": "res://assets/art/bg/ch09_wagon_fortress.png",
+	"act02_ch010": "res://assets/art/bg/ch10_capital_gates.png",
 }
 
 # Arena layout templates (procedural patterns per theme)
@@ -35,6 +55,20 @@ func _init():
 
 func setup(chapter_id: String, parent: Node2D) -> void:
 	current_theme = CHAPTER_THEMES.get(chapter_id, "field")
+	
+	# Add chapter background image (behind tilemap)
+	var bg_path = CHAPTER_BACKGROUNDS.get(chapter_id, "")
+	if bg_path != "" and ResourceLoader.exists(bg_path):
+		var bg_tex = load(bg_path)
+		if bg_tex:
+			var bg_sprite = Sprite2D.new()
+			bg_sprite.name = "ChapterBackground"
+			bg_sprite.texture = bg_tex
+			bg_sprite.z_index = -20  # Behind tilemap (-10)
+			bg_sprite.centered = false
+			bg_sprite.scale = Vector2(640.0 / bg_tex.get_width(), 360.0 / bg_tex.get_height())
+			parent.add_child(bg_sprite)
+			parent.move_child(bg_sprite, 0)
 	
 	# Load tileset
 	var tileset_path = "res://assets/tileset_%s.png" % current_theme

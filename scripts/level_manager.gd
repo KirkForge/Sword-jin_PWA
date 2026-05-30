@@ -89,6 +89,9 @@ func _ready():
 	$Objective.text = "Objective: " + chapter_data.get("objective", "Defeat enemies!")
 	$LevelLabel.text = chapter_data.get("title", "Level 1")
 	
+	# Show chapter title card overlay
+	_show_title_card(chapter_id)
+	
 	# Background handled by ArenaBuilder tilemap
 	# (ColorRect removed by arena builder)
 	
@@ -116,6 +119,47 @@ func _dialogue_start():
 func _on_dialogue_ended_start():
 	dialogue_triggered["start"] = true
 	AudioManager.play_bgm("bgm_battle", 1.0, true)
+
+# Chapter title card overlay — shows for 2.5s then fades
+func _show_title_card(chapter_id: String) -> void:
+	var ch_idx := chapter_id.right(3).to_int() if chapter_id.length() >= 3 else 1
+	var title_path = "res://assets/art/bg/ch%02d_title.png" % ch_idx
+	
+	if not ResourceLoader.exists(title_path):
+		return
+	
+	var tex = load(title_path)
+	if not tex:
+		return
+	
+	# Create overlay
+	var overlay := ColorRect.new()
+	overlay.name = "TitleCardOverlay"
+	overlay.color = Color(0, 0, 0, 0.7)
+	overlay.z_index = 50
+	overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	
+	var card := TextureRect.new()
+	card.name = "TitleCardImage"
+	card.texture = tex
+	card.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	card.z_index = 51
+	card.set_anchors_preset(Control.PRESET_CENTER)
+	
+	# Add as CanvasLayer so it stays on top
+	var layer := CanvasLayer.new()
+	layer.name = "TitleCardLayer"
+	layer.layer = 100
+	add_child(layer)
+	layer.add_child(overlay)
+	layer.add_child(card)
+	
+	# Auto-dismiss after 2.5s
+	await get_tree().create_timer(2.5).timeout
+	var tween := create_tween()
+	tween.tween_property(overlay, "color:a", 0.0, 0.5)
+	tween.parallel().tween_property(card, "modulate:a", 0.0, 0.5)
+	tween.tween_callback(layer.queue_free)
 
 func _setup_level():
 	# Apply saved health from GameState

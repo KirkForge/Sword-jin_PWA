@@ -1,5 +1,5 @@
 extends CanvasLayer
-# DialogueManager — Displays chapter dialogue overlays
+# DialogueManager — Displays chapter dialogue overlays with speaker portraits
 # Tap/click to advance through dialogue triggers
 
 signal dialogue_started
@@ -11,6 +11,17 @@ signal dialogue_mid_trigger(trig: String)
 @onready var text_label = $Panel/Text
 @onready var advance_hint = $Panel/AdvanceHint
 
+# Speaker portrait mapping
+const SPEAKER_PORTRAITS := {
+	"JIN": "res://assets/art/npcs/jin_portrait.png",
+	"INNKEEPER": "res://assets/art/npcs/innkeeper_portrait.png",
+	"MERCHANT": "res://assets/art/npcs/merchant_portrait.png",
+	"CRIMSON_FANG": "res://assets/art/npcs/crimson_fang_portrait.png",
+	"GATE_WARDEN": "res://assets/art/npcs/gate_warden_portrait.png",
+}
+
+var portrait_rect: TextureRect = null
+
 var current_queue: Array = []
 var current_index := 0
 var is_playing := false
@@ -19,6 +30,19 @@ var typing_tween: Tween
 
 func _ready():
 	hide_dialogue()
+	# Create portrait TextureRect (wired into panel)
+	portrait_rect = TextureRect.new()
+	portrait_rect.name = "SpeakerPortrait"
+	portrait_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	portrait_rect.custom_minimum_size = Vector2(64, 64)
+	portrait_rect.visible = false
+	# Insert before speaker label so portrait appears on the left
+	var speaker_idx = panel.get_children().find(speaker_label)
+	if speaker_idx >= 0:
+		panel.add_child(portrait_rect)
+		panel.move_child(portrait_rect, speaker_idx)
+	else:
+		panel.add_child(portrait_rect)
 
 func show_dialogue(speaker: String, text: String):
 	is_playing = true
@@ -26,6 +50,14 @@ func show_dialogue(speaker: String, text: String):
 	advance_hint.hide()
 	speaker_label.text = speaker
 	text_label.text = ""  # Typewriter effect starts empty
+	
+	# Load speaker portrait
+	var portrait_path = SPEAKER_PORTRAITS.get(speaker, "")
+	if portrait_path != "" and ResourceLoader.exists(portrait_path):
+		portrait_rect.texture = load(portrait_path)
+		portrait_rect.visible = true
+	else:
+		portrait_rect.visible = false
 	
 	# Typewriter effect
 	var chars = text.length()
@@ -48,6 +80,8 @@ func hide_dialogue():
 	current_queue.clear()
 	current_index = 0
 	advance_hint.hide()
+	if portrait_rect:
+		portrait_rect.visible = false
 
 func load_dialogue(chapter_dialogue: Array):
 	current_queue = chapter_dialogue.duplicate(true)

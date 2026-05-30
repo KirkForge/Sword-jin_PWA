@@ -119,6 +119,19 @@ func _show_badge_detail(badge: Dictionary):
 	var name: String = badge.get("name", "???")
 	var desc: String = badge.get("description", "")
 	var category: String = badge.get("category", "")
+	var badge_path: String = badge.get("badge_path", "")
+	
+	# Badge image (if PNG exists, show it; otherwise fall back to emoji)
+	if badge_path != "" and ResourceLoader.exists(badge_path):
+		var badge_tex = load(badge_path)
+		if badge_tex:
+			var badge_rect := TextureRect.new()
+			badge_rect.texture = badge_tex
+			badge_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			badge_rect.custom_minimum_size = Vector2(96, 96)
+			if not unlocked:
+				badge_rect.modulate = Color(0.3, 0.3, 0.3, 0.6)
+			detail_panel.add_child(badge_rect)
 	
 	# Icon + Name
 	var title := Label.new()

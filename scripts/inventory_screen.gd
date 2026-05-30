@@ -24,6 +24,9 @@ func _refresh():
 	for weapon_id in GameState.unlocked_weapons:
 		var stats = GameState.WEAPON_STATS.get(weapon_id, {})
 		var btn = Button.new()
+		var icon_path: String = stats.get("icon", "")
+		if icon_path != "" and ResourceLoader.exists(icon_path):
+			btn.icon = load(icon_path)
 		btn.text = "%s — DMG %d, CD %.2fs%s" % [
 			weapon_id.replace("_", " ").capitalize(),
 			stats.get("damage", 0),
