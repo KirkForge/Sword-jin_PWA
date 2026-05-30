@@ -188,6 +188,7 @@ func _update_label():
 
 func _die():
 	is_dead = true
+	_show_death_sprite("assassin_death")
 	GameState.record_kill("assassin")
 	velocity = Vector2.ZERO
 	$CollisionShape2D.set_deferred("disabled", true)
@@ -254,3 +255,20 @@ func _show_loot_popup(loot: Dictionary):
 	tween.parallel().tween_property(label_node, "position:y", label_node.position.y - 30, 1.5)
 	tween.parallel().tween_property(label_node, "modulate:a", 0.0, 1.5).set_delay(0.5)
 	tween.tween_callback(label_node.queue_free)
+
+
+func _show_death_sprite(sprite_name: String):
+	var path = "res://assets/art/enemies/%s.png" % sprite_name
+	if ResourceLoader.exists(path):
+		var tex = load(path)
+		if tex:
+			var death_sprite = Sprite2D.new()
+			death_sprite.name = "DeathSprite"
+			death_sprite.texture = tex
+			death_sprite.global_position = global_position
+			death_sprite.z_index = 10
+			death_sprite.scale = Vector2(0.5, 0.5)
+			get_tree().current_scene.add_child(death_sprite)
+			var tween = get_tree().create_tween()
+			tween.tween_property(death_sprite, "modulate:a", 0.0, 0.8)
+			tween.tween_callback(death_sprite.queue_free)

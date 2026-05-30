@@ -199,6 +199,7 @@ func _update_label():
 
 func _die():
 	is_dead = true
+	_show_death_sprite("skeleton_captain_death")
 	GameState.record_kill("skeleton_captain")
 	print("Captain defeated!")
 	
@@ -275,3 +276,20 @@ func apply_shaman_buff(damage_mult: float, speed_mult: float, duration: float):
 	if not is_dead:
 		attack_damage = int(attack_damage / damage_mult)
 		speed /= speed_mult
+
+
+func _show_death_sprite(sprite_name: String):
+	var path = "res://assets/art/enemies/%s.png" % sprite_name
+	if ResourceLoader.exists(path):
+		var tex = load(path)
+		if tex:
+			var death_sprite = Sprite2D.new()
+			death_sprite.name = "DeathSprite"
+			death_sprite.texture = tex
+			death_sprite.global_position = global_position
+			death_sprite.z_index = 10
+			death_sprite.scale = Vector2(0.5, 0.5)
+			get_tree().current_scene.add_child(death_sprite)
+			var tween = get_tree().create_tween()
+			tween.tween_property(death_sprite, "modulate:a", 0.0, 0.8)
+			tween.tween_callback(death_sprite.queue_free)

@@ -157,6 +157,8 @@ func _die():
 	$CollisionShape2D.set_deferred("disabled", true)
 	attack_hitbox.set_deferred("disabled", true)
 	
+	_show_death_sprite("bandit_death")
+	
 	if randf() < 0.25:
 		var potion_scene = preload("res://scenes/potion_pickup.tscn")
 		var potion = potion_scene.instantiate()
@@ -171,6 +173,22 @@ func _die():
 	modulate = Color.DARK_GRAY
 	await get_tree().create_timer(0.3).timeout
 	queue_free()
+
+func _show_death_sprite(sprite_name: String):
+	var path = "res://assets/art/enemies/%s.png" % sprite_name
+	if ResourceLoader.exists(path):
+		var tex = load(path)
+		if tex:
+			var death_sprite = Sprite2D.new()
+			death_sprite.name = "DeathSprite"
+			death_sprite.texture = tex
+			death_sprite.global_position = global_position
+			death_sprite.z_index = 10
+			death_sprite.scale = Vector2(0.5, 0.5)
+			get_tree().current_scene.add_child(death_sprite)
+			var tween = get_tree().create_tween()
+			tween.tween_property(death_sprite, "modulate:a", 0.0, 0.8)
+			tween.tween_callback(death_sprite.queue_free)
 
 func _on_attack_hitbox_body_entered(body):
 	if body.has_method("take_damage") and body != self:

@@ -147,6 +147,9 @@ func _die():
 	
 	AudioManager.play_sfx("skeleton_death")
 	
+	# Death sprite overlay
+	_show_death_sprite("skeleton_death")
+	
 	# Drop potion (20% chance)
 	if randf() < 0.20:
 		var potion = potion_scene.instantiate()
@@ -170,6 +173,24 @@ func _die():
 	# Remove after delay
 	await get_tree().create_timer(0.5).timeout
 	queue_free()
+
+func _show_death_sprite(sprite_name: String):
+	"""Show death sprite overlay when art is available."""
+	var path = "res://assets/art/enemies/%s.png" % sprite_name
+	if ResourceLoader.exists(path):
+		var tex = load(path)
+		if tex:
+			var death_sprite = Sprite2D.new()
+			death_sprite.name = "DeathSprite"
+			death_sprite.texture = tex
+			death_sprite.global_position = global_position
+			death_sprite.z_index = 10
+			death_sprite.scale = Vector2(0.5, 0.5)  # 128px -> 64px game units
+			get_tree().current_scene.add_child(death_sprite)
+			# Fade out
+			var tween = get_tree().create_tween()
+			tween.tween_property(death_sprite, "modulate:a", 0.0, 0.8)
+			tween.tween_callback(death_sprite.queue_free)
 
 func _show_loot_popup(loot: Dictionary):
 	"""Show a brief loot notification above the enemy."""

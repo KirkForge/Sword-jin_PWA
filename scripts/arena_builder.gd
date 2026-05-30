@@ -37,6 +37,14 @@ const CHAPTER_BACKGROUNDS := {
 	"act02_ch010": "res://assets/art/bg/ch10_capital_gates.png",
 }
 
+# Atmospheric overlay per theme
+const ATMOSPHERE_OVERLAYS := {
+	"field": "res://assets/art/effects/atmosphere/mountain_wind.png",
+	"forest": "res://assets/art/effects/atmosphere/forest_mist.png",
+	"fortress": "res://assets/art/effects/atmosphere/fortress_torches.png",
+	"dark_fortress": "res://assets/art/effects/atmosphere/dungeon_gloom.png",
+}
+
 # Arena layout templates (procedural patterns per theme)
 # 0=void, 1=ground, 2=wall, 3=wall_top, 4=decoration, 5=path, 6=hazard
 # Each layout is ARENA_H rows × ARENA_W cols
@@ -69,6 +77,21 @@ func setup(chapter_id: String, parent: Node2D) -> void:
 			bg_sprite.scale = Vector2(640.0 / bg_tex.get_width(), 360.0 / bg_tex.get_height())
 			parent.add_child(bg_sprite)
 			parent.move_child(bg_sprite, 0)
+	
+	# Add atmospheric overlay (above tilemap, below entities)
+	var atm_path = ATMOSPHERE_OVERLAYS.get(current_theme, "")
+	if atm_path != "" and ResourceLoader.exists(atm_path):
+		var atm_tex = load(atm_path)
+		if atm_tex:
+			var atm_rect = TextureRect.new()
+			atm_rect.name = "AtmosphereOverlay"
+			atm_rect.texture = atm_tex
+			atm_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+			atm_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+			atm_rect.modulate = Color(1, 1, 1, 0.12)  # Subtle atmospheric effect
+			atm_rect.z_index = -5  # Above tilemap (-10), below entities (0+)
+			atm_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			parent.add_child(atm_rect)
 	
 	# Load tileset
 	var tileset_path = "res://assets/tileset_%s.png" % current_theme
