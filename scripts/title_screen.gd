@@ -29,6 +29,21 @@ func _ready():
 	GameState.is_daily_challenge_run = false
 	GameState.active_daily_modifiers = []
 	
+	# Title screen background art
+	var title_bg_path = "res://assets/art/screens/title_bg.png"
+	if ResourceLoader.exists(title_bg_path):
+		var tex = load(title_bg_path)
+		if tex:
+			var bg_art = TextureRect.new()
+			bg_art.name = "TitleBgArt"
+			bg_art.texture = tex
+			bg_art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+			bg_art.set_anchors_preset(Control.PRESET_FULL_RECT)
+			bg_art.modulate = Color(1, 1, 1, 0.35)
+			bg_art.z_index = -1
+			add_child(bg_art)
+			move_child(bg_art, 0)
+	
 	start_btn.grab_focus()
 	
 	# Start title music

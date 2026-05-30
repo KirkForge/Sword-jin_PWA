@@ -33,14 +33,51 @@ func show_victory(chapter_title: String, xp_gained: int, gold_gained: int = 0, r
 	# Pause the game
 	get_tree().paused = true
 	
+	# Victory screen background art
+	var victory_bg_path = "res://assets/art/screens/victory_chapter.png"
+	if ResourceLoader.exists(victory_bg_path):
+		var tex = load(victory_bg_path)
+		if tex:
+			var bg_rect = TextureRect.new()
+			bg_rect.name = "VictoryBgArt"
+			bg_rect.texture = tex
+			bg_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+			bg_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+			bg_rect.modulate = Color(1, 1, 1, 0.2)
+			bg_rect.z_index = -1
+			panel.add_child(bg_rect)
+			panel.move_child(bg_rect, 0)
+	
 	# Title
 	title_label.text = "VICTORY: " + chapter_title
 	
 	# Stars display with criteria hint
-	var star_text := ""
-	for i in range(3):
-		star_text += "⭐" if i < stars else "☆"
-	stars_label.text = star_text
+	# Star rating with PNG icons
+	var star_paths := {
+		1: "res://assets/art/ui/star_1.png",
+		2: "res://assets/art/ui/star_2.png",
+		3: "res://assets/art/ui/star_3.png",
+	}
+	var star_img_path = star_paths.get(stars, "")
+	if star_img_path != "" and ResourceLoader.exists(star_img_path):
+		stars_label.text = ""  # Clear text, we'll use image
+		var star_tex = load(star_img_path)
+		if star_tex:
+			# Remove old star images if any
+			for child in stars_label.get_parent().get_children():
+				if child.name == "StarRatingArt":
+					child.queue_free()
+			var star_rect = TextureRect.new()
+			star_rect.name = "StarRatingArt"
+			star_rect.texture = star_tex
+			star_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			star_rect.custom_minimum_size = Vector2(128, 48)
+			stars_label.get_parent().add_child(star_rect)
+	else:
+		var star_text := ""
+		for i in range(3):
+			star_text += "⭐" if i < stars else "☆"
+		stars_label.text = star_text
 	stars_label.add_theme_color_override("font_color", Color(1.0, 0.843, 0.0))  # Gold
 	stars_label.visible = true
 	

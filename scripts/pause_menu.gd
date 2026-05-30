@@ -33,7 +33,7 @@ func _build_ui():
 	grow_vertical = Control.GROW_DIRECTION_BOTH
 	mouse_filter = Control.MOUSE_FILTER_STOP  # Block clicks behind
 	
-	# Semi-transparent background
+	# Semi-transparent background with optional art
 	bg = ColorRect.new()
 	bg.anchor_right = 1.0
 	bg.anchor_bottom = 1.0
@@ -41,6 +41,23 @@ func _build_ui():
 	bg.grow_vertical = Control.GROW_DIRECTION_BOTH
 	bg.color = Color(0.05, 0.06, 0.08, 0.85)
 	add_child(bg)
+	
+	# Pause screen background art
+	var pause_bg_path = "res://assets/art/screens/pause_bg.png"
+	if ResourceLoader.exists(pause_bg_path):
+		var pause_bg_tex = load(pause_bg_path)
+		if pause_bg_tex:
+			var pause_bg_sprite = TextureRect.new()
+			pause_bg_sprite.name = "PauseBgArt"
+			pause_bg_sprite.texture = pause_bg_tex
+			pause_bg_sprite.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+			pause_bg_sprite.anchor_right = 1.0
+			pause_bg_sprite.anchor_bottom = 1.0
+			pause_bg_sprite.grow_horizontal = Control.GROW_DIRECTION_BOTH
+			pause_bg_sprite.grow_vertical = Control.GROW_DIRECTION_BOTH
+			pause_bg_sprite.modulate = Color(1, 1, 1, 0.25)  # Subtle, behind UI
+			pause_bg_sprite.z_index = -1
+			add_child(pause_bg_sprite)
 	
 	# Container hierarchy
 	var center = CenterContainer.new()

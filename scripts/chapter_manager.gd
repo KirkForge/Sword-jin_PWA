@@ -16,6 +16,24 @@ var max_act_buttons := 1  # Increases as acts are cleared
 
 func _ready():
 	visible = false
+	
+	# Chapter select background art
+	var bg_path = "res://assets/art/screens/chapter_select_bg.png"
+	if ResourceLoader.exists(bg_path):
+		var tex = load(bg_path)
+		if tex:
+			var bg_art = TextureRect.new()
+			bg_art.name = "ChapterSelectBgArt"
+			bg_art.texture = tex
+			bg_art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+			bg_art.set_anchors_preset(Control.PRESET_FULL_RECT)
+			bg_art.modulate = Color(1, 1, 1, 0.15)
+			bg_art.z_index = -1
+			var margin = get_node_or_null("MarginContainer")
+			if margin:
+				margin.add_child(bg_art)
+				margin.move_child(bg_art, 0)
+	
 	_act_buttons_setup()
 	_refresh_chapters()
 	_update_progress()

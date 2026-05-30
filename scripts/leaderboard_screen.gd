@@ -21,6 +21,22 @@ var showing_online := false
 func _ready():
 	visible = false
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	
+	# Leaderboard background art
+	var bg_path = "res://assets/art/screens/leaderboard_bg.png"
+	if ResourceLoader.exists(bg_path):
+		var tex = load(bg_path)
+		if tex:
+			var bg_art = TextureRect.new()
+			bg_art.name = "LeaderboardBgArt"
+			bg_art.texture = tex
+			bg_art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+			bg_art.set_anchors_preset(Control.PRESET_FULL_RECT)
+			bg_art.modulate = Color(1, 1, 1, 0.15)
+			bg_art.z_index = -1
+			panel.add_child(bg_art)
+			panel.move_child(bg_art, 0)
+	
 	ghost_toggle.pressed.connect(_on_ghost_toggle)
 	run_ghost_btn.pressed.connect(_on_run_ghost)
 	back_btn.pressed.connect(_on_back)
