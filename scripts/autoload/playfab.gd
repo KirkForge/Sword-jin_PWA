@@ -17,7 +17,7 @@ signal leaderboard_failed(chapter_id: String, error: String)
 
 # ─── Config ──────────────────────────────────────────────────────────────────
 # Set your PlayFab Title ID here or via project settings
-var TITLE_ID := ""  # e.g. "ABC12"
+var TITLE_ID := "191992"
 const API_BASE := "https://titleId.playfabapi.com/Client"
 const STATISTIC_NAME := "ChapterTime"
 
