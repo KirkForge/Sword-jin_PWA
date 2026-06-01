@@ -123,7 +123,7 @@ func _on_dialogue_ended_start():
 # Chapter title card overlay — shows for 2.5s then fades
 func _show_title_card(chapter_id: String) -> void:
 	var ch_idx := chapter_id.right(3).to_int() if chapter_id.length() >= 3 else 1
-	var title_path = "res://assets/art/bg/ch%02d_title.png" % ch_idx
+	var title_path = "res://assets/art/bg/ch%02d_title.webp" % ch_idx
 	
 	if not ResourceLoader.exists(title_path):
 		return

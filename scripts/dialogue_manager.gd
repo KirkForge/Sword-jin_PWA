@@ -13,11 +13,11 @@ signal dialogue_mid_trigger(trig: String)
 
 # Speaker portrait mapping
 const SPEAKER_PORTRAITS := {
-	"JIN": "res://assets/art/npcs/jin_portrait.png",
-	"INNKEEPER": "res://assets/art/npcs/innkeeper_portrait.png",
-	"MERCHANT": "res://assets/art/npcs/merchant_portrait.png",
-	"CRIMSON_FANG": "res://assets/art/npcs/crimson_fang_portrait.png",
-	"GATE_WARDEN": "res://assets/art/npcs/gate_warden_portrait.png",
+	"JIN": "res://assets/art/npcs/jin_portrait.webp",
+	"INNKEEPER": "res://assets/art/npcs/innkeeper_portrait.webp",
+	"MERCHANT": "res://assets/art/npcs/merchant_portrait.webp",
+	"CRIMSON_FANG": "res://assets/art/npcs/crimson_fang_portrait.webp",
+	"GATE_WARDEN": "res://assets/art/npcs/gate_warden_portrait.webp",
 }
 
 var portrait_rect: TextureRect = null

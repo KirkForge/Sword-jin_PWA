@@ -20,7 +20,7 @@ func _ready():
 	close_btn.pressed.connect(_on_close)
 	
 	# Bestiary background art
-	var bg_path = "res://assets/art/screens/bestiary_bg.png"
+	var bg_path = "res://assets/art/screens/bestiary_bg.webp"
 	if ResourceLoader.exists(bg_path):
 		var tex = load(bg_path)
 		if tex:

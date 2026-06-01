@@ -43,7 +43,7 @@ func _build_ui():
 	add_child(bg)
 	
 	# Pause screen background art
-	var pause_bg_path = "res://assets/art/screens/pause_bg.png"
+	var pause_bg_path = "res://assets/art/screens/pause_bg.webp"
 	if ResourceLoader.exists(pause_bg_path):
 		var pause_bg_tex = load(pause_bg_path)
 		if pause_bg_tex:

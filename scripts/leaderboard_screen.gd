@@ -23,7 +23,7 @@ func _ready():
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	
 	# Leaderboard background art
-	var bg_path = "res://assets/art/screens/leaderboard_bg.png"
+	var bg_path = "res://assets/art/screens/leaderboard_bg.webp"
 	if ResourceLoader.exists(bg_path):
 		var tex = load(bg_path)
 		if tex:
@@ -233,8 +233,13 @@ func _on_chapter_select(chapter_id: String):
 			select_btn.add_theme_color_override("font_color", Color(0.3, 0.8, 1.0))
 	# Re-highlight selected
 	var idx = 0
-	for chapter_id_key in ChapterDatabase.chapters.keys():
-		if chapter_id_key == chapter_id:
+	var chapters = ChapterDatabase.chapters
+	var sorted_ids = chapters.keys()
+	sorted_ids.sort()
+	for cid in sorted_ids:
+		if not chapters[cid].get("is_unlocked", false):
+			continue
+		if cid == chapter_id:
 			if idx < chapter_list.get_child_count():
 				var hbox = chapter_list.get_child(idx)
 				for c in hbox.get_children():

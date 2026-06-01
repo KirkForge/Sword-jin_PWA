@@ -30,7 +30,7 @@ func _ready():
 	GameState.active_daily_modifiers = []
 	
 	# Title screen background art
-	var title_bg_path = "res://assets/art/screens/title_bg.png"
+	var title_bg_path = "res://assets/art/screens/title_bg.webp"
 	if ResourceLoader.exists(title_bg_path):
 		var tex = load(title_bg_path)
 		if tex:

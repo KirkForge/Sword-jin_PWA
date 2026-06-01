@@ -18,7 +18,7 @@ func _ready():
 	visible = false
 	
 	# Chapter select background art
-	var bg_path = "res://assets/art/screens/chapter_select_bg.png"
+	var bg_path = "res://assets/art/screens/chapter_select_bg.webp"
 	if ResourceLoader.exists(bg_path):
 		var tex = load(bg_path)
 		if tex:

@@ -7,7 +7,7 @@ radius = 12.0
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_merchant"]
 animations = [{
-"frames": [ExtResource("res://assets/art/npcs/merchant_idle.png")],
+"frames": [ExtResource("res://assets/art/npcs/merchant_idle.webp")],
 "loop": true,
 "name": &"idle",
 "speed": 5.0

@@ -17,7 +17,7 @@ func _ready():
 	visible = false
 	
 	# Daily challenge background art
-	var bg_path = "res://assets/art/screens/daily_challenge_bg.png"
+	var bg_path = "res://assets/art/screens/daily_challenge_bg.webp"
 	if ResourceLoader.exists(bg_path):
 		var tex = load(bg_path)
 		if tex:

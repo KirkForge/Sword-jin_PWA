@@ -34,7 +34,7 @@ func show_victory(chapter_title: String, xp_gained: int, gold_gained: int = 0, r
 	get_tree().paused = true
 	
 	# Victory screen background art
-	var victory_bg_path = "res://assets/art/screens/victory_chapter.png"
+	var victory_bg_path = "res://assets/art/screens/victory_chapter.webp"
 	if ResourceLoader.exists(victory_bg_path):
 		var tex = load(victory_bg_path)
 		if tex:
@@ -54,9 +54,9 @@ func show_victory(chapter_title: String, xp_gained: int, gold_gained: int = 0, r
 	# Stars display with criteria hint
 	# Star rating with PNG icons
 	var star_paths := {
-		1: "res://assets/art/ui/star_1.png",
-		2: "res://assets/art/ui/star_2.png",
-		3: "res://assets/art/ui/star_3.png",
+		1: "res://assets/art/ui/star_1.webp",
+		2: "res://assets/art/ui/star_2.webp",
+		3: "res://assets/art/ui/star_3.webp",
 	}
 	var star_img_path = star_paths.get(stars, "")
 	if star_img_path != "" and ResourceLoader.exists(star_img_path):

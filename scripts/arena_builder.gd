@@ -25,24 +25,24 @@ const CHAPTER_THEMES := {
 
 # Chapter background image mapping
 const CHAPTER_BACKGROUNDS := {
-	"act01_ch001": "res://assets/art/bg/ch01_rusted_blade.png",
-	"act01_ch002": "res://assets/art/bg/ch02_merchant_plea.png",
-	"act01_ch003": "res://assets/art/bg/ch03_iron_gate.png",
-	"act01_ch004": "res://assets/art/bg/ch04_gate_opens.png",
-	"act02_ch005": "res://assets/art/bg/ch05_merchant_trail.png",
-	"act02_ch006": "res://assets/art/bg/ch06_whispering_ruins.png",
-	"act02_ch007": "res://assets/art/bg/ch07_assassin_gambit.png",
-	"act02_ch008": "res://assets/art/bg/ch08_crimson_lieutenant.png",
-	"act02_ch009": "res://assets/art/bg/ch09_wagon_fortress.png",
-	"act02_ch010": "res://assets/art/bg/ch10_capital_gates.png",
+	"act01_ch001": "res://assets/art/bg/ch01_rusted_blade.webp",
+	"act01_ch002": "res://assets/art/bg/ch02_merchant_plea.webp",
+	"act01_ch003": "res://assets/art/bg/ch03_iron_gate.webp",
+	"act01_ch004": "res://assets/art/bg/ch04_gate_opens.webp",
+	"act02_ch005": "res://assets/art/bg/ch05_merchant_trail.webp",
+	"act02_ch006": "res://assets/art/bg/ch06_whispering_ruins.webp",
+	"act02_ch007": "res://assets/art/bg/ch07_assassin_gambit.webp",
+	"act02_ch008": "res://assets/art/bg/ch08_crimson_lieutenant.webp",
+	"act02_ch009": "res://assets/art/bg/ch09_wagon_fortress.webp",
+	"act02_ch010": "res://assets/art/bg/ch10_capital_gates.webp",
 }
 
 # Atmospheric overlay per theme
 const ATMOSPHERE_OVERLAYS := {
-	"field": "res://assets/art/effects/atmosphere/mountain_wind.png",
-	"forest": "res://assets/art/effects/atmosphere/forest_mist.png",
-	"fortress": "res://assets/art/effects/atmosphere/fortress_torches.png",
-	"dark_fortress": "res://assets/art/effects/atmosphere/dungeon_gloom.png",
+	"field": "res://assets/art/effects/atmosphere/mountain_wind.webp",
+	"forest": "res://assets/art/effects/atmosphere/forest_mist.webp",
+	"fortress": "res://assets/art/effects/atmosphere/fortress_torches.webp",
+	"dark_fortress": "res://assets/art/effects/atmosphere/dungeon_gloom.webp",
 }
 
 # Arena layout templates (procedural patterns per theme)
