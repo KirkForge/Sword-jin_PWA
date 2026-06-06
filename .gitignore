@@ -15,6 +15,9 @@ secrets*
 .godot/scene_groups_cache.cfg
 *.import
 *.translation
+# Godot 4.4+ per-script unique resource IDs (build artifacts)
+*.gd.uid
+*.uid
 
 # === Dependencies ===
 node_modules/
